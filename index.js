@@ -6,7 +6,8 @@ exports.stringify = stringify;
 // exports.clean = clean;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Modified from Douglas Crockford's JSON2: https://github.com/douglascrockford/JSON-js
+// Modified from Douglas Crockford's JSON2: 
+// https://github.com/douglascrockford/JSON-js
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 var OBJ_PROTO = Object.prototype;
@@ -65,16 +66,6 @@ function is_array (subject) {
 // @param {string} indent
 // @param {string} gap
 function str(key, holder, replacer, indent, gap) {
-
-  // Produce a string from holder[key].
-
-  // var i, // The loop counter.
-  //   k, // The member key.
-  //   v, // The member value.
-  //   length,
-  //   mind = gap,
-  //   partial,
-  //   value = holder[key];
   var value = holder[key];
 
   // If the value has a toJSON method, call it to obtain a replacement value.
@@ -121,7 +112,6 @@ function str(key, holder, replacer, indent, gap) {
       var length;
       var i;
 
-      // Is the value an array?
       if (is_array(value)) {
         // The value is an array. Stringify every element. Use null as a placeholder
         // for non-JSON values.
@@ -167,21 +157,6 @@ function str(key, holder, replacer, indent, gap) {
           var v = prev[0];
           var top = prev[1];
           var right = prev[2];
-          // ```js
-          // {
-          //   '// a': {
-          //     pos: 'right',
-          //     body: '// comments'
-          //   },
-          //   a: 1
-          // }
-          // ```
-          // -> 
-          // ```
-          // {
-          //   a: 1 // comments
-          // }
-          // ```
           if (top) {
             // ```js
             // {
@@ -207,6 +182,21 @@ function str(key, holder, replacer, indent, gap) {
           }
 
           if (right) {
+            // ```js
+            // {
+            //   '// a': {
+            //     pos: 'right',
+            //     body: '// comments'
+            //   },
+            //   a: 1
+            // }
+            // ```
+            // -> 
+            // ```
+            // {
+            //   a: 1 // comments
+            // }
+            // ```
             v += ' ' + right;
           }
           partial.push(v + (last ? '' : '\n'));
@@ -265,7 +255,6 @@ function stringify (value, replacer, space) {
 
   // If the space parameter is a number, make an indent string containing that
   // many spaces.
-
   var i;
   var indent = '';
   if (typeof space === 'number') {
@@ -290,10 +279,10 @@ function stringify (value, replacer, space) {
 };
 
 
-// If the JSON object does not yet have a parse method, give it one.
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-var  cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
 function parse (text, reviver) {
 
   // The parse method takes a text and an optional reviver function, and returns
