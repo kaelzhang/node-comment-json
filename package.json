@@ -27,7 +27,8 @@
     "url": "https://github.com/kaelzhang/node-comment-json/issues"
   },
   "devDependencies": {
+    "chai": "*",
     "mocha": "*",
-    "chai": "*"
+    "test-fixture": "^1.0.2"
   }
 }

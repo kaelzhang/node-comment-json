@@ -25,10 +25,7 @@ var obj = json.parse(fs.readFileSync('package.json').toString());
 console.log(obj);
 // ->
 // {
-//   "// name": {
-//     pos: "top",
-//     body: " package name"
-//   },
+//   "// name": "// package name",
 //   name: "comment-json"
 // }
 
@@ -57,10 +54,7 @@ Clean comment properties.
 
 ```js
 var object = {
-  "// name": {
-    pos: "top",
-    body: " package name"
-  },
+  "// name": "// package name",
   name: "comment-json"
 };
 json.clean(object); // {name: "comment-json"}
