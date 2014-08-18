@@ -144,6 +144,7 @@ function str(key, holder, replacer, indent, gap) {
       // If the replacer is an array, use it to select the members to be stringified.
       var k; // key
       var v;
+
       if (replacer && is_array(replacer)) {
         length = replacer.length;
         for (i = 0; i < length; i += 1) {
@@ -158,31 +159,79 @@ function str(key, holder, replacer, indent, gap) {
 
       } else {
         var comment;
+        var push_prev = function (last) {
+          if (!prev) {
+            return;
+          }
+
+          var v = prev[0];
+          var top = prev[1];
+          var right = prev[2];
+          // ```js
+          // {
+          //   '// a': {
+          //     pos: 'right',
+          //     body: '// comments'
+          //   },
+          //   a: 1
+          // }
+          // ```
+          // -> 
+          // ```
+          // {
+          //   a: 1 // comments
+          // }
+          // ```
+          if (top) {
+            // ```js
+            // {
+            //   '// a': {
+            //     pos: 'top',
+            //     body: '// comments'
+            //   },
+            //   a: 1
+            // }
+            // ```
+            // -> 
+            // ```
+            // {
+            //   // comments
+            //   a: 1
+            // }
+            // ```
+            v = deeper_gap + top + '\n' + v;
+          }
+
+          if (!last) {
+            v += ',';
+          }
+
+          if (right) {
+            v += ' ' + right;
+          }
+          partial.push(v + (last ? '' : '\n'));
+        }
+
+        var prev;
 
         // Otherwise, iterate through all of the keys in the object.
         for (k in value) {
           if (OBJ_PROTO.hasOwnProperty.call(value, k) && !is_comment(k, value)) {
             v = str(k, value, replacer, indent, deeper_gap);
             if (v) {
-              v = deeper_gap + quote(k) + (deeper_gap ? ': ' : ':') + v;
+              push_prev();
+              prev = [deeper_gap + quote(k) + (deeper_gap ? ': ' : ':') + v];
 
-              if (deeper_gap) {
-                if (comment = value[KEY_PREFIX + k]) {
-                  if (comment.pos === 'top') {
-                    v = deeper_gap + comment.body + '\n' + v + ',\n';
-                  } else {
-                    v += ', ' + comment.body + '\n';
-                  }
-                } else {
-                  v += ',\n';
-                }
+              // Only apply comments when argument `space` is not empty.
+              if (deeper_gap && (comment = value[KEY_PREFIX + k])) {
+                prev = prev.concat(comment);
               }
-
-              partial.push(v);
             }
           }
         }
       }
+
+      push_prev(true);
 
       // Join all of the member texts together, separated with commas,
       // and wrap them in braces.
@@ -191,7 +240,7 @@ function str(key, holder, replacer, indent, gap) {
         : deeper_gap
           ? '{\n' 
             + partial.join('').replace(/,\n$/, '') + '\n' 
-            + gap + '}' 
+            + gap + '}'
           : '{' + partial.join(',') + '}';
   }
 }
