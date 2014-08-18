@@ -1,6 +1,6 @@
 # comment-json [![NPM version](https://badge.fury.io/js/comment-json.svg)](http://badge.fury.io/js/comment-json) [![Build Status](https://travis-ci.org/kaelzhang/node-comment-json.svg?branch=master)](https://travis-ci.org/kaelzhang/node-comment-json) [![Dependency Status](https://gemnasium.com/kaelzhang/node-comment-json.svg)](https://gemnasium.com/kaelzhang/node-comment-json)
 
-Parse and stringify JSON file with documments
+Parse and stringify JSON file with domments.
 
 ## Install
 
@@ -50,6 +50,21 @@ And it does the similar thing as the vanilla one, and also stringify the `"// ab
 ### JSON.strip(string)
 
 Strips comments from `string`.
+
+### JSON.clean(object)
+
+Clean comment properties.
+
+```js
+var object = {
+  "// name": {
+    pos: "top",
+    body: " package name"
+  },
+  name: "comment-json"
+};
+JSON.clean(object); // {name: "comment-json"}
+```
 
 ## License
 
