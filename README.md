@@ -20,8 +20,8 @@ package.json:
 ```
 
 ```js
-var JSON = require('comment-json');
-var obj = JSON.parse(fs.readFileSync('package.json').toString());
+var json = require('comment-json');
+var obj = json.parse(fs.readFileSync('package.json').toString());
 console.log(obj);
 // ->
 // {
@@ -32,26 +32,26 @@ console.log(obj);
 //   name: "comment-json"
 // }
 
-JSON.stringify(obj, null, 2); // Will be the same as package.json
+json.stringify(obj, null, 2); // Will be the same as package.json
 ```
 
-### JSON.parse(string, [reviver])
+### json.parse(string, [reviver])
 
 The arguments are the same as the vanilla [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse).
 
 
-### JSON.stringify(object, [replacer], [space])
+### json.stringify(object, [replacer], [space])
 
 The arguments are the same as the vanilla [`JSON.stringify`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
 And it does the similar thing as the vanilla one, and also stringify the `"// abc"`-like property into comments if the `"abc"` property is found.
 
 
-### JSON.strip(string)
+### json.strip(string)
 
 Strips comments from `string`.
 
-### JSON.clean(object)
+### json.clean(object)
 
 Clean comment properties.
 
@@ -63,7 +63,7 @@ var object = {
   },
   name: "comment-json"
 };
-JSON.clean(object); // {name: "comment-json"}
+json.clean(object); // {name: "comment-json"}
 ```
 
 ## License
