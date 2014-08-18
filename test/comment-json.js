@@ -2,6 +2,18 @@
 
 var expect = require('chai').expect;
 var json = require('../');
+var fixture = require('test-fixture');
+var fs = require('fs');
+
+function each (subjects, replacers, spaces, iterator) {
+  subjects.forEach(function (subject) {
+    replacers.forEach(function (replacer) {
+      spaces.forEach(function (space) {
+        iterator(subject, replacer, space);
+      });
+    });
+  });
+}
 
 describe("vanilla usage of `json.stringify()`", function(){
   var subjects = [
@@ -13,6 +25,7 @@ describe("vanilla usage of `json.stringify()`", function(){
     undefined,
     [],
     {},
+    {a: 1},
     ['abc', 1, {a: 1, b: undefined}],
     [undefined, 1, 'abc'],
     {
@@ -40,17 +53,45 @@ describe("vanilla usage of `json.stringify()`", function(){
     '1'
   ];
   
-  subjects.forEach(function (subject) {
-    replacers.forEach(function (replacer) {
-      spaces.forEach(function (space) {
-        var desc = [subject, replacer, space].map(function (s) {
-          return JSON.stringify(s);
-        }).join(', ');
+  each(subjects, replacers, spaces, function (subject, replacer, space) {
+    var desc = [subject, replacer, space].map(function (s) {
+      return JSON.stringify(s);
+    }).join(', ');
 
-        it(desc, function(){
-          expect(json.stringify(subject, replacer, space)).to.equal(JSON.stringify(subject, replacer, space));
-        });
-      });
+    it(desc, function(){
+      expect(json.stringify(subject, replacer, space))
+        .to
+        .equal(JSON.stringify(subject, replacer, space));
     });
   });
+});
+
+describe("enhanced json.stringify()", function(){
+  var f = fixture();
+
+  function run (name, replacer, space) {
+    var file = f.resolve(name + '.js');
+    var e = [name, replacer, space].map(function (s) {
+      return s === null
+        ? 'null'
+        : s === undefined
+          ? 'undefined'
+          : s;
+    }).join('-') + '.json';
+    e = f.resolve(e);
+    var desc = [name, replacer, space].map(function (s) {
+      return JSON.stringify(s);
+    }).join(', ');
+
+    it(desc, function(){
+      expect(json.stringify(require(file), replacer, space)).to.equal(fs.readFileSync(e).toString());
+    });
+  }
+
+  each([
+    'single-top',
+    'single-right'
+  ], 
+  [null], 
+  [2, 3, null], run);
 });
