@@ -9,6 +9,7 @@ exports.clean = clean;
 // Modified from Douglas Crockford's JSON2: https://github.com/douglascrockford/JSON-js
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+var OBJ_PROTO = Object.prototype;
 
 // Format integers to have at least two digits.
 function format_int(n) {
@@ -52,11 +53,16 @@ function quote(string) {
 
 
 function is_array (subject) {
-  return Object.prototype.toString.apply(subject) === '[object Array]';
+  return OBJ_PROTO.toString.apply(subject) === '[object Array]';
 }
 
 
-function str(key, holder, replacer) {
+// @param {string} key
+// @param {Object} holder
+// @param {function()|Array} replacer
+// @param {string} indent
+// @param {string} gap
+function str(key, holder, replacer, indent, gap) {
 
   // Produce a string from holder[key].
 
@@ -95,68 +101,65 @@ function str(key, holder, replacer) {
       // If the value is a boolean or null, convert it to a string. Note:
       // typeof null does not produce 'null'. The case is included here in
       // the remote chance that this gets fixed someday.
-
       return String(value);
 
-      // If the type is 'object', we might be dealing with an object or an array or
-      // null.
-
+    // If the type is 'object', we might be dealing with an object or an array or
+    // null.
     case 'object':
 
       // Due to a specification blunder in ECMAScript, typeof null is 'object',
       // so watch out for that case.
-
       if (!value) {
         return 'null';
       }
 
+      var deeper_gap = gap + indent;
       // Make an array to hold the partial results of stringifying this object value.
-
-      gap += indent;
-      partial = [];
+      var partial = [];
+      var length;
+      var i;
 
       // Is the value an array?
-
       if (is_array(value)) {
-
         // The value is an array. Stringify every element. Use null as a placeholder
         // for non-JSON values.
-
         length = value.length;
         for (i = 0; i < length; i += 1) {
-          partial[i] = str(i, value) || 'null';
+          partial[i] = str(i, value, replacer, indent, deeper_gap) || 'null';
         }
 
         // Join all of the elements together, separated with commas, and wrap them in
         // brackets.
-
-        v = partial.length === 0 ? '[]' : gap ? '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']' : '[' + partial.join(',') + ']';
-        gap = mind;
-        return v;
+        return partial.length === 0 
+          ? '[]' 
+          : deeper_gap
+            ? '[\n' 
+              + deeper_gap + partial.join(',\n' + deeper_gap) + '\n' 
+              + gap + ']' 
+            : '[' + partial.join(',') + ']';
       }
 
       // If the replacer is an array, use it to select the members to be stringified.
-
-      if (rep && typeof rep === 'object') {
-        length = rep.length;
+      var k; // key
+      if (replacer && is_array(replacer)) {
+        length = replacer.length;
         for (i = 0; i < length; i += 1) {
-          if (typeof rep[i] === 'string') {
+          if (typeof replacer[i] === 'string') {
             k = rep[i];
-            v = str(k, value);
+            v = str(k, value, replacer, indent, deeper_gap);
             if (v) {
-              partial.push(quote(k) + (gap ? ': ' : ':') + v);
+              partial.push(quote(k) + (deeper_gap ? ': ' : ':') + v);
             }
           }
         }
+
       } else {
-
         // Otherwise, iterate through all of the keys in the object.
-
         for (k in value) {
-          if (Object.prototype.hasOwnProperty.call(value, k)) {
-            v = str(k, value);
+          if (OBJ_PROTO.hasOwnProperty.call(value, k)) {
+            v = str(k, value, replacer, indent, deeper_gap);
             if (v) {
-              partial.push(quote(k) + (gap ? ': ' : ':') + v);
+              partial.push(quote(k) + (deeper_gap ? ': ' : ':') + v);
             }
           }
         }
@@ -164,10 +167,13 @@ function str(key, holder, replacer) {
 
       // Join all of the member texts together, separated with commas,
       // and wrap them in braces.
-
-      v = partial.length === 0 ? '{}' : gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}' : '{' + partial.join(',') + '}';
-      gap = mind;
-      return v;
+      return partial.length === 0 
+        ? '{}' 
+        : deeper_gap 
+          ? '{\n' 
+            + deeper_gap + partial.join(',\n' + deeper_gap) + '\n' 
+            + gap + '}' 
+          : '{' + partial.join(',') + '}';
   }
 }
 
@@ -205,7 +211,7 @@ function stringify (value, replacer, space) {
 
   // Make a fake root object containing our value under the key of ''.
   // Return the result of stringifying the value.
-  return str('', {'': value}, replacer, '');
+  return str('', {'': value}, replacer, indent, '');
 };
 
 
@@ -228,7 +234,7 @@ function parse (text, reviver) {
     var k, v, value = holder[key];
     if (value && typeof value === 'object') {
       for (k in value) {
-        if (Object.prototype.hasOwnProperty.call(value, k)) {
+        if (OBJ_PROTO.hasOwnProperty.call(value, k)) {
           v = walk(value, k);
           if (v !== undefined) {
             value[k] = v;
