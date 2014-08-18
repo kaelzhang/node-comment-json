@@ -1,6 +1,6 @@
 {
   "name": "comment-json",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Parse and stringify JSON file with documments",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,8 @@
     "comments",
     "json",
     "json-stringify",
-    "json-parse"
+    "json-parse",
+    "parser"
   ],
   "engines": {
     "node": ">=0.10.0"
