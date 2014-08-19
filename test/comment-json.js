@@ -88,8 +88,10 @@ describe("enhanced json.stringify()", function(){
     'single-top',
     'single-right',
     'duplex',
-    'deep'
-  ], 
+    'deep',
+    // simple case, of which the comment is not an array.
+    'simple'
+  ],
   [null], 
   [2, 3, null], run);
 });
