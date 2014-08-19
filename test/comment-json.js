@@ -25,7 +25,7 @@ describe("vanilla usage of `json.stringify()`", function(){
     undefined,
     [],
     {},
-    {a: 1},
+    {a: 1, b: null},
     ['abc', 1, {a: 1, b: undefined}],
     [undefined, 1, 'abc'],
     {
@@ -90,7 +90,9 @@ describe("enhanced json.stringify()", function(){
 
   each([
     'single-top',
-    'single-right'
+    'single-right',
+    'duplex',
+    'deep'
   ], 
   [null], 
   [2, 3, null], run);
