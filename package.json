@@ -1,7 +1,7 @@
 {
   "name": "comment-json",
-  "version": "0.1.5",
-  "description": "Parse and stringify JSON file with domments",
+  "version": "0.1.6",
+  "description": "Parse and stringify JSON file with comments",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha --reporter spec ./test/*.js"
