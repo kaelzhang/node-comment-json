@@ -44,7 +44,7 @@ The arguments are the same as the vanilla [`JSON.stringify`](https://developer.m
 And it does the similar thing as the vanilla one, and also stringify the `"// abc"`-like property into comments if the `"abc"` property is found.
 
 
-#<!-- ## json.strip(string)
+<!-- ### json.strip(string)
 
 Strips comments from `string`.
 
