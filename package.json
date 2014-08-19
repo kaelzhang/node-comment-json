@@ -30,5 +30,8 @@
     "chai": "*",
     "mocha": "*",
     "test-fixture": "^1.0.2"
+  },
+  "dependencies": {
+    "json-parser": "^0.2.0"
   }
 }
