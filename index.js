@@ -155,6 +155,11 @@ function str(key, holder, replacer, indent, gap) {
           }
 
           var v = prev[0];
+          if (!deeper_gap) {
+            partial.push(v);
+            return;
+          }
+          
           var top = prev[1];
           var right = prev[2];
           if (top) {
