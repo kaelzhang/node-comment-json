@@ -38,15 +38,15 @@ json.stringify(obj, null, 2); // Will be the same as package.json
 
 The arguments are the same as the vanilla [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse).
 
-Above all, `json.parse()` is not a parser with 100% accuracy to output a AST which describe every detail of the commented json, including the location of every comments, whitespaces;
+Above all, `json.parse()` is not a parser with 100% accuracy to output a AST which describe every detail of the commented json, including the location of every comments, whitespaces, etc.
 
-But it does work, and could meet most of the requirement to record important informations as fast as possible without making it too complicated. 
+But it DOES work, and could meet most of our requirements to record important informations as fast as possible without making everything too complicated. 
 
-Let's jump into a much more complicated case:
+#### Let's jump into a much more integrated case:
 
 code:
 
-```
+```js
 /**
  block comment at the top
  */
@@ -59,7 +59,7 @@ code:
 // comment at the bottom
 ```
 
-Then the result of `json.parse(code)` is:
+Then the result of `json.parse(code)` will be:
 
 ```js
 {
@@ -74,6 +74,7 @@ Then the result of `json.parse(code)` is:
 
   // Comment for a property is the value of `'// <prop>'`
   '// a': [
+    // Comments above property `a`
     [
       '// comment for a', 
       '/* block comment */'
@@ -85,6 +86,8 @@ Then the result of `json.parse(code)` is:
   a: 1
 }
 ```
+
+**TL;NR**
 
 There are two types of comments:
   - single line comment which starts with `//`
