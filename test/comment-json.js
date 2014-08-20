@@ -97,6 +97,35 @@ describe("enhanced json.stringify()", function(){
 });
 
 
+describe("json.stringify() should take care of prototype", function(){
+  it("normal case", function(){
+    var obj = {
+      a: 1
+    };
+
+    obj.__proto__ = {
+      b: 1
+    };
+
+    expect(json.stringify(obj)).to.equal('{"a":1}');
+  });
+
+  it("with comments", function(){
+    var obj = {
+      a: 1,
+      '//^': ['// a']
+    };
+
+    obj.__proto__ = {
+      b: 1
+    };
+
+    expect(json.stringify(obj)).to.equal('{"a":1}');
+    expect(json.stringify(obj, null, 2)).to.equal('// a\n{\n  "a": 1\n}');
+  });
+});
+
+
 function every (subject, checker) {
   if (Object(subject) !== subject) {
     return checker(subject);
