@@ -1,6 +1,8 @@
 # comment-json [![NPM version](https://badge.fury.io/js/comment-json.svg)](http://badge.fury.io/js/comment-json) [![Build Status](https://travis-ci.org/kaelzhang/node-comment-json.svg?branch=master)](https://travis-ci.org/kaelzhang/node-comment-json) [![Dependency Status](https://gemnasium.com/kaelzhang/node-comment-json.svg)](https://gemnasium.com/kaelzhang/node-comment-json)
 
-Parse and stringify JSON file with comments.
+Parse JSON strings with comments into JavaScript objects and also could stringify the objects into commented JSON strings.
+
+The usage of `comment-json` is exactly the same as the vanilla `JSON` object.
 
 ## Install
 
@@ -25,7 +27,7 @@ var obj = json.parse(fs.readFileSync('package.json').toString());
 console.log(obj);
 // ->
 // {
-//   "// name": "// package name",
+//   "// name": [["// package name"]],
 //   name: "comment-json"
 // }
 
@@ -36,12 +38,72 @@ json.stringify(obj, null, 2); // Will be the same as package.json
 
 The arguments are the same as the vanilla [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse).
 
+Above all, `json.parse()` is not a parser with 100% accuracy to output a AST which describe every detail of the commented json, including the location of every comments, whitespaces;
+
+But it does work, and could meet most of the requirement to record important informations as fast as possible without making it too complicated. 
+
+Let's jump into a much more complicated case:
+
+code:
+
+```
+/**
+ block comment at the top
+ */
+// comment at the top
+{
+  // comment for a
+  /* block comment */
+  "a": 1 // comment at right
+}
+// comment at the bottom
+```
+
+Then the result of `json.parse(code)` is:
+
+```js
+{
+  // Comments at the top of the file
+  '//^': [
+    '/**\n block comment at the top\n */', 
+    '// comment at the top'
+  ],
+
+  // Comments at the bottom of the file
+  '//$': ['// comment at the bottom'],
+
+  // Comment for a property is the value of `'// <prop>'`
+  '// a': [
+    [
+      '// comment for a', 
+      '/* block comment */'
+    ],
+    ['// comment at right']
+  ],
+
+  // The real value
+  a: 1
+}
+```
+
+There are two types of comments:
+  - single line comment which starts with `//`
+  - block comment which is wrapped by `/*` and `*/`
+
+`//^`, is the array which contains comments at the top. If there are two lines of comments which start with `//`, they will be considered as two comment items in the array.
+
+`//$`, similar to `//^`, is the comments at the bottom.
+
+`// <key>`, is a two-dimensional array contains the comments for a certain property `key`.
+  - the first item of the array is an array of the comments above the `key`
+  - the second item is the comments at the right side of the `key`
+
 
 ### json.stringify(object, [replacer], [space])
 
 The arguments are the same as the vanilla [`JSON.stringify`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
-And it does the similar thing as the vanilla one, and also stringify the `"// abc"`-like property into comments if the `"abc"` property is found.
+And it does the similar thing as the vanilla one, but also deal with extra properties and convert them into comments.
 
 
 <!-- ### json.strip(string)
