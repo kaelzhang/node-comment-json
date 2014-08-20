@@ -90,7 +90,9 @@ describe("enhanced json.stringify()", function(){
     'duplex',
     'deep',
     // simple case, of which the comment is not an array.
-    'simple'
+    'simple',
+    // #2
+    'indent'
   ],
   [null], 
   [2, 3, null], run);

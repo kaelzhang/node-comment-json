@@ -1,6 +1,7 @@
 # comment-json [![NPM version](https://badge.fury.io/js/comment-json.svg)](http://badge.fury.io/js/comment-json) [![Build Status](https://travis-ci.org/kaelzhang/node-comment-json.svg?branch=master)](https://travis-ci.org/kaelzhang/node-comment-json) [![Dependency Status](https://gemnasium.com/kaelzhang/node-comment-json.svg)](https://gemnasium.com/kaelzhang/node-comment-json)
 
-Parse JSON strings with comments into JavaScript objects and also could stringify the objects into commented JSON strings.
+- Parse JSON strings with comments into JavaScript objects.
+- stringify the objects into JSON strings with comments if there are.
 
 The usage of `comment-json` is exactly the same as the vanilla `JSON` object.
 
@@ -53,13 +54,18 @@ code:
 // comment at the top
 {
   // comment for a
+  // comment line 2 for a
   /* block comment */
   "a": 1 // comment at right
 }
 // comment at the bottom
 ```
 
-Then the result of `json.parse(code)` will be:
+```js
+var result = json.parse(code);
+```
+
+Then the `result` will be:
 
 ```js
 {
@@ -76,7 +82,8 @@ Then the result of `json.parse(code)` will be:
   '// a': [
     // Comments above property `a`
     [
-      '// comment for a', 
+      '// comment for a',
+      '// comment line 2 for a',
       '/* block comment */'
     ],
     ['// comment at right']
@@ -107,6 +114,17 @@ There are two types of comments:
 The arguments are the same as the vanilla [`JSON.stringify`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
 And it does the similar thing as the vanilla one, but also deal with extra properties and convert them into comments.
+
+#### space
+
+If space is not specified, or the space is an empty string, there will be no comments.
+
+For the case above:
+
+```js
+console.log( json.stringify(result) ); // {"a":1}
+console.log( json.stringify(result, null, 2) ); // is the same as `code`
+```
 
 
 <!-- ### json.strip(string)
