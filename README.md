@@ -3,7 +3,7 @@
 - Parse JSON strings with comments into JavaScript objects.
 - stringify the objects into JSON strings with comments if there are.
 
-The usage of `comment-json` is exactly the same as the vanilla `JSON` object.
+The usage of `comment-json` is exactly the same as the vanilla [`JSON`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON) object.
 
 ## Install
 
@@ -35,11 +35,11 @@ console.log(obj);
 json.stringify(obj, null, 2); // Will be the same as package.json
 ```
 
-### json.parse(string, [reviver])
+## json.parse(string, [reviver])
 
 The arguments are the same as the vanilla [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse).
 
-Above all, `json.parse()` is not a parser with 100% accuracy to output a AST which describe every detail of the commented json, including the location of every comments, whitespaces, etc.
+Above all, `json.parse()` is not a parser with 100% accuracy to output an AST which describes every detail of the commented json, including the locations of every comments, whitespaces, etc.
 
 But it DOES work, and could meet most of our requirements to record important informations as fast as possible without making everything too complicated. 
 
@@ -109,7 +109,7 @@ There are two types of comments:
   - the second item is the comments at the right side of the `key`
 
 
-### json.stringify(object, [replacer], [space])
+## json.stringify(object, [replacer], [space])
 
 The arguments are the same as the vanilla [`JSON.stringify`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
@@ -117,7 +117,7 @@ And it does the similar thing as the vanilla one, but also deal with extra prope
 
 #### space
 
-If space is not specified, or the space is an empty string, there will be no comments.
+If space is not specified, or the space is an empty string, the result of `json.stringify()` will be no comments.
 
 For the case above:
 

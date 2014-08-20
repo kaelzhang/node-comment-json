@@ -1,6 +1,6 @@
 {
   "name": "comment-json",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Parse and stringify JSON file with comments",
   "main": "index.js",
   "scripts": {
