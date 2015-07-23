@@ -1,6 +1,6 @@
 {
   "name": "comment-json",
-  "version": "0.1.11",
+  "version": "1.0.0",
   "description": "Parse and stringify JSON file with comments",
   "main": "index.js",
   "scripts": {
@@ -13,6 +13,7 @@
   "keywords": [
     "comment-json",
     "comments",
+    "annotations",
     "json",
     "json-stringify",
     "json-parse",
@@ -32,6 +33,6 @@
     "test-fixture": "^1.0.2"
   },
   "dependencies": {
-    "json-parser": "^0.2.0"
+    "json-parser": "^1.0.0"
   }
 }
