@@ -28,6 +28,7 @@ package.json:
 
 ```js
 var json = require('comment-json');
+var fs = require('fs');
 var obj = json.parse(fs.readFileSync('package.json').toString());
 console.log(obj);
 // ->
