@@ -40,9 +40,11 @@ console.log(obj);
 json.stringify(obj, null, 2); // Will be the same as package.json
 ```
 
-## json.parse(string, [reviver])
+## json.parse(string, [reviver], [removes_comments])
 
-The arguments are the same as the vanilla [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse).
+The arguments are the same as the vanilla [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse), except for `removes_comments`:
+
+- removes_comments `Boolean` If true, the comments won't be maintained, which is often used when we want to get a clean object.
 
 Above all, `json.parse()` is not a parser with 100% accuracy to output an AST which describes every detail of the commented json, including the locations of every comments, whitespaces, etc.
 
