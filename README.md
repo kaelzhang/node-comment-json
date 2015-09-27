@@ -101,6 +101,13 @@ Then the `result` will be:
 }
 ```
 
+#### If you want to strip comments
+
+```js
+json.parse(code, null, true);
+// -> {a: 1}
+```
+
 **TL;NR**
 
 There are two types of comments:
