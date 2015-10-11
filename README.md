@@ -37,7 +37,9 @@ console.log(obj);
 //   name: "comment-json"
 // }
 
-json.stringify(obj, null, 2); // Will be the same as package.json
+json.stringify(obj, null, 2); 
+// Will be the same as package.json,
+// which will be very useful if we use a json file to store configurations.
 ```
 
 ## json.parse(string, [reviver=null], [removes_comments=false])
