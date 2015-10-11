@@ -40,7 +40,7 @@ console.log(obj);
 json.stringify(obj, null, 2); // Will be the same as package.json
 ```
 
-## json.parse(string, [reviver], [removes_comments])
+## json.parse(string, [reviver=null], [removes_comments=false])
 
 The arguments are the same as the vanilla [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse), except for `removes_comments`:
 
