@@ -1,4 +1,2 @@
-
-
-exports.stringify = require('./lib/stringify')
-exports.parse = require('./lib/parse')
+exports.stringify = require('./stringify')
+exports.parse = require('./parse')
