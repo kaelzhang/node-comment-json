@@ -1,7 +1,7 @@
 module.exports = {
   // Comments at the top of the file
   '//^': [
-    '/**\n block comment at the top\n */', 
+    '/**\n block comment at the top\n */',
     '// comment at the top'
   ],
 
@@ -21,4 +21,4 @@ module.exports = {
 
   // The real value
   a: 1
-};
+}

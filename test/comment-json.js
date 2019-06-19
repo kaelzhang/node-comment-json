@@ -1,24 +1,22 @@
-'use strict';
 
-var expect = require('chai').expect;
-var json = require('../');
-var fixture = require('test-fixture');
-var fs = require('fs');
+
+const {expect} = require('chai')
+const fixture = require('test-fixture')
+const fs = require('fs')
+const json = require('../')
 
 function each (subjects, replacers, spaces, iterator) {
-  subjects.forEach(function (subject) {
-    replacers.forEach(function (replacer) {
-      spaces.forEach(function (space) {
-        var desc = [subject, replacer, space].map(function (s) {
-          return JSON.stringify(s);
-        }).join(', ');
-        iterator(subject, replacer, space, desc);
-      });
-    });
-  });
+  subjects.forEach(subject => {
+    replacers.forEach(replacer => {
+      spaces.forEach(space => {
+        const desc = [subject, replacer, space].map(s => JSON.stringify(s)).join(', ')
+        iterator(subject, replacer, space, desc)
+      })
+    })
+  })
 }
 
-var subjects = [
+const subjects = [
   'abc',
   1,
   true,
@@ -35,53 +33,51 @@ var subjects = [
     b: false,
     c: [1, '1']
   }
-];
+]
 
-var replacers = [
+const replacers = [
   null,
   function (key, value) {
     if (typeof value === 'string') {
-      return undefined;
+      return undefined
     }
 
-    return value;
+    return value
   }
-];
+]
 
-var spaces = [
+const spaces = [
   1,
   2,
   '  ',
   '1'
-];
+]
 
-describe("vanilla usage of `json.stringify()`", function(){
-  each(subjects, replacers, spaces, function (subject, replacer, space, desc) {
-    it('stringify: ' + desc, function(){
+describe('vanilla usage of `json.stringify()`', () => {
+  each(subjects, replacers, spaces, (subject, replacer, space, desc) => {
+    it(`stringify: ${desc}`, () => {
       expect(json.stringify(subject, replacer, space))
-        .to
-        .equal(JSON.stringify(subject, replacer, space));
-    });
-  });
-});
+      .to
+      .equal(JSON.stringify(subject, replacer, space))
+    })
+  })
+})
 
-describe("enhanced json.stringify()", function(){
-  var f = fixture();
+describe('enhanced json.stringify()', () => {
+  const f = fixture()
 
   function run (name, replacer, space, desc) {
-    var file = f.resolve(name + '.js');
-    var e = [name, replacer, space].map(function (s) {
-      return s === null
-        ? 'null'
-        : s === undefined
-          ? 'undefined'
-          : s;
-    }).join('-') + '.json';
-    e = f.resolve(e);
+    const file = f.resolve(`${name}.js`)
+    let e = `${[name, replacer, space].map(s => s === null
+      ? 'null'
+      : s === undefined
+        ? 'undefined'
+        : s).join('-')}.json`
+    e = f.resolve(e)
 
-    it(desc, function(){
-      expect(json.stringify(require(file), replacer, space)).to.equal(fs.readFileSync(e).toString());
-    });
+    it(desc, () => {
+      expect(json.stringify(require(file), replacer, space)).to.equal(fs.readFileSync(e).toString())
+    })
   }
 
   each([
@@ -94,87 +90,83 @@ describe("enhanced json.stringify()", function(){
     // #2
     'indent'
   ],
-  [null], 
-  [2, 3, null], run);
-});
+  [null],
+  [2, 3, null], run)
+})
 
 
-describe("json.stringify() should take care of prototype", function(){
-  it("normal case", function(){
-    var obj = {
+describe('json.stringify() should take care of prototype', () => {
+  it('normal case', () => {
+    const obj = {
       a: 1
-    };
+    }
 
     obj.__proto__ = {
       b: 1
-    };
+    }
 
-    expect(json.stringify(obj)).to.equal('{"a":1}');
-  });
+    expect(json.stringify(obj)).to.equal('{"a":1}')
+  })
 
-  it("with comments", function(){
-    var obj = {
+  it('with comments', () => {
+    const obj = {
       a: 1,
       '//^': ['// a']
-    };
+    }
 
     obj.__proto__ = {
       b: 1
-    };
+    }
 
-    expect(json.stringify(obj)).to.equal('{"a":1}');
-    expect(json.stringify(obj, null, 2)).to.equal('// a\n{\n  "a": 1\n}');
-  });
-});
+    expect(json.stringify(obj)).to.equal('{"a":1}')
+    expect(json.stringify(obj, null, 2)).to.equal('// a\n{\n  "a": 1\n}')
+  })
+})
 
 
 function every (subject, checker) {
   if (Object(subject) !== subject) {
-    return checker(subject);
+    return checker(subject)
   }
 
   if (Array.isArray(subject)) {
-    return subject.every(function (v) {
-      return every(v, checker);
-    });
+    return subject.every(v => every(v, checker))
   }
 
-  var key;
+  let key
   for (key in subject) {
     if (!every(subject[key], checker)) {
-      return false;
+      return false
     }
   }
 
-  return true;
+  return true
 }
 
 
-describe("vanilla json.parse()", function(){
-  each(subjects, replacers, spaces, function (subject, replacer, space, desc) {
-    if (typeof space !== 'number' && !(typeof space == 'string' && /^\s*$/.test(space))) {
-      return;
+describe('vanilla json.parse()', () => {
+  each(subjects, replacers, spaces, (subject, replacer, space, desc) => {
+    if (typeof space !== 'number' && !(typeof space === 'string' && /^\s*$/.test(space))) {
+      return
     }
 
-    if (!every(subject, function (v) {
-      return v !== undefined;
-    })) {
-      return;
+    if (!every(subject, v => v !== undefined)) {
+      return
     }
 
     if (typeof replacer === 'function') {
-      return;
+      return
     }
 
-    it('parse: ' + desc, function(){
-      var str = JSON.stringify(subject, replacer, space);
-      expect(json.parse(str)).to.deep.equal(subject);
-    });
-  });
-});
+    it(`parse: ${desc}`, () => {
+      const str = JSON.stringify(subject, replacer, space)
+      expect(json.parse(str)).to.deep.equal(subject)
+    })
+  })
+})
 
 
-var invalid = [
+const invalid = [
   '{',
   '}',
   '[',
@@ -182,30 +174,30 @@ var invalid = [
   '{a:1}',
   '{"a":a}',
   '{"a":undefined}'
-];
+]
 
 // ECMA262 does not define the standard of error messages.
 // However, we throw error messages the same as JSON.parse()
-describe("error messages", function(){
-  invalid.forEach(function (i) {
-    it('error message:' + i, function(){
-      var error;
-      var err;
+describe('error messages', () => {
+  invalid.forEach(i => {
+    it(`error message:${i}`, () => {
+      let error
+      let err
 
       try {
-        json.parse(i);
-      } catch(e) {
-        error = e;
+        json.parse(i)
+      } catch (e) {
+        error = e
       }
 
       try {
-        JSON.parse(i);
-      } catch(e) {
-        err = e;
+        JSON.parse(i)
+      } catch (e) {
+        err = e
       }
 
-      expect(!!(err && error)).to.equal(true);
-      expect(error.message).to.equal(err.message);
-    });
-  });
-});
+      expect(!!(err && error)).to.equal(true)
+      expect(error.message).to.equal(err.message)
+    })
+  })
+})

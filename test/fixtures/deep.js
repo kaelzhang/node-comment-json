@@ -7,4 +7,4 @@ module.exports = {
     a: 1,
     '// a': [['// comment deep a']]
   }
-};
+}

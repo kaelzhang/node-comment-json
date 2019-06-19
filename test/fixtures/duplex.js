@@ -4,4 +4,4 @@ module.exports = {
   b: 2,
   '// b': [['/* comment top b */']],
   '// c': '// comment c'
-};
+}
