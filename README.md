@@ -1,18 +1,29 @@
-[![NPM version](https://badge.fury.io/js/comment-json.svg)](http://badge.fury.io/js/comment-json)
 [![Build Status](https://travis-ci.org/kaelzhang/node-comment-json.svg?branch=master)](https://travis-ci.org/kaelzhang/node-comment-json)
+[![Coverage](https://codecov.io/gh/kaelzhang/node-comment-json/branch/master/graph/badge.svg)](https://codecov.io/gh/kaelzhang/node-comment-json)
+<!-- optional appveyor tst
+[![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/kaelzhang/node-comment-json?branch=master&svg=true)](https://ci.appveyor.com/project/kaelzhang/node-comment-json)
+-->
+<!-- optional npm version
+[![NPM version](https://badge.fury.io/js/comment-json.svg)](http://badge.fury.io/js/comment-json)
+-->
+<!-- optional npm downloads
+[![npm module downloads per month](http://img.shields.io/npm/dm/comment-json.svg)](https://www.npmjs.org/package/comment-json)
+-->
+<!-- optional dependency status
 [![Dependency Status](https://david-dm.org/kaelzhang/node-comment-json.svg)](https://david-dm.org/kaelzhang/node-comment-json)
+-->
 
 # comment-json
 
 - Parse JSON strings with comments into JavaScript objects.
-- stringify the objects into JSON strings with comments if there are.
+- Stringify the objects into JSON strings with comments if there are.
 
 The usage of `comment-json` is exactly the same as the vanilla [`JSON`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON) object.
 
 ## Install
 
 ```sh
-$ npm install comment-json --save
+$ npm i comment-json
 ```
 
 ## Usage
@@ -27,17 +38,18 @@ package.json:
 ```
 
 ```js
-var json = require('comment-json');
-var fs = require('fs');
-var obj = json.parse(fs.readFileSync('package.json').toString());
-console.log(obj);
+const json = require('comment-json')
+var fs = require('fs')
+var obj = json.parse(fs.readFileSync('package.json').toString())
+
+console.log(obj)
 // ->
 // {
 //   "// name": [["// package name"]],
 //   name: "comment-json"
 // }
 
-json.stringify(obj, null, 2); 
+json.stringify(obj, null, 2);
 // Will be the same as package.json,
 // which will be very useful if we use a json file to store configurations.
 ```
@@ -50,7 +62,7 @@ The arguments are the same as the vanilla [`JSON.parse`](https://developer.mozil
 
 Above all, `json.parse()` is not a parser with 100% accuracy to output an AST which describes every detail of the commented json, including the locations of every comments, whitespaces, etc.
 
-But it DOES work, and could meet most of our requirements to record important informations as fast as possible without making everything too complicated. 
+But it DOES work, and could meet most of our requirements to record important informations as fast as possible without making everything too complicated.
 
 #### Let's jump into a much more integrated case:
 
@@ -80,7 +92,7 @@ Then the `result` will be:
 {
   // Comments at the top of the file
   '//^': [
-    '/**\n block comment at the top\n */', 
+    '/**\n block comment at the top\n */',
     '// comment at the top'
   ],
 
@@ -161,4 +173,4 @@ json.clean(object); // {name: "comment-json"}
 
 ## License
 
-MIT
+[MIT](LICENSE)
