@@ -54,6 +54,8 @@
     "nyc": "^14.1.1"
   },
   "dependencies": {
+    "core-util-is": "^1.0.2",
+    "has-own-prop": "^2.0.0",
     "json-parser": "^2.1.1"
   }
 }

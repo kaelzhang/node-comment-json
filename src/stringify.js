@@ -1,23 +1,19 @@
-
-
-module.exports = stringify
+const {
+  isArray, isObject, isFunction, isNumber, isString
+} = require('core-util-is')
+const hasOwnProperty = require('has-own-prop')
 
 /////////////////////////////////////////////////////////////////
 // Modified from Douglas Crockford's JSON2:
 // https://github.com/douglascrockford/JSON-js
 /////////////////////////////////////////////////////////////////
 
-const OBJ_PROTO = Object.prototype
 const KEY_PREFIX = '// '
 const KEY_PREFIX_LENGTH = 3
 
-// Format integers to have at least two digits.
-function format_int (n) {
-  return n < 10 ? `0${n}` : n
-}
+// eslint-disable-next-line no-control-regex
+const ESCAPABLE = /[\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g
 
-
-const escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g
 // table of character substitutions
 const meta = {
   '\b': '\\b',
@@ -29,13 +25,13 @@ const meta = {
   '\\': '\\\\'
 }
 
-function escape (string) {
-  escapable.lastIndex = 0
-  if (!escapable.test(string)) {
+const escape = string => {
+  ESCAPABLE.lastIndex = 0
+  if (!ESCAPABLE.test(string)) {
     return string
   }
 
-  return string.replace(escapable, a => {
+  return string.replace(ESCAPABLE, a => {
     const c = meta[a]
     return typeof c === 'string'
       ? c
@@ -43,41 +39,27 @@ function escape (string) {
   })
 }
 
-
-function quote (string) {
-  // Escape no control characters, no quote characters,
-  // and no backslash characters,
-  // then we can safely slap some quotes around it.
-  return `"${escape(string)}"`
-}
-
-
-function is_array (subject) {
-  return OBJ_PROTO.toString.apply(subject) === '[object Array]'
-}
-
-
-function is_object (subject) {
-  return subject && typeof subject === 'object'
-}
-
+// Escape no control characters, no quote characters,
+// and no backslash characters,
+// then we can safely slap some quotes around it.
+const quote = string => `"${escape(string)}"`
 
 // @param {string} key
 // @param {Object} holder
 // @param {function()|Array} replacer
 // @param {string} indent
 // @param {string} gap
-function str (key, holder, replacer, indent, gap) {
+const str = (key, holder, replacer, indent, gap) => {
   let value = holder[key]
 
   // If the value has a toJSON method, call it to obtain a replacement value.
-  if (is_object(value) && typeof value.toJSON === 'function') {
+  if (isObject(value) && isFunction(value.toJSON)) {
     value = value.toJSON(key)
   }
 
   // If we were called with a replacer function, then call the replacer to
   // obtain a replacement value.
-  if (typeof replacer === 'function') {
+  if (isFunction(replacer)) {
     value = replacer.call(holder, key, value)
   }
 
@@ -87,6 +69,7 @@ function str (key, holder, replacer, indent, gap) {
 
   case 'number':
     // JSON numbers must be finite. Encode non-finite numbers as null.
+    // eslint-disable-next-line no-restricted-globals
     return isFinite(value) ? String(value) : 'null'
 
   case 'boolean':
@@ -113,7 +96,7 @@ function str (key, holder, replacer, indent, gap) {
     var length
     var i
 
-    if (is_array(value)) {
+    if (isArray(value)) {
       // The value is an array. Stringify every element. Use null as a placeholder
       // for non-JSON values.
       length = value.length
@@ -136,7 +119,7 @@ function str (key, holder, replacer, indent, gap) {
     var k // key
     var v
 
-    if (replacer && is_array(replacer)) {
+    if (replacer && isArray(replacer)) {
       length = replacer.length
       for (i = 0; i < length; i += 1) {
         if (typeof replacer[i] === 'string') {
@@ -211,7 +194,7 @@ function str (key, holder, replacer, indent, gap) {
 
       // Otherwise, iterate through all of the keys in the object.
       for (k in value) {
-        if (OBJ_PROTO.hasOwnProperty.call(value, k) && !is_comment(k, value)) {
+        if (hasOwnProperty(value, k) && !is_comment(k, value)) {
           v = str(k, value, replacer, indent, deeper_gap)
           if (v) {
             push_prev()
@@ -237,6 +220,7 @@ function str (key, holder, replacer, indent, gap) {
           partial.join('').replace(/,\n$/, '')}\n${
           gap}}`
         : `{${partial.join(',')}}`
+  default:
   }
 }
 
@@ -249,10 +233,35 @@ function is_comment (key, holder) {
       && key.slice(KEY_PREFIX_LENGTH) in holder
 }
 
+const join_comments = (value, joiner) => isArray(value)
+  ? value.join(joiner || '\n')
+  : value
+
+const join = (host, key, joiner) => host[key]
+  ? join_comments(host[key], joiner)
+  : ''
+
+const get_indent = space => {
+  // If the space parameter is a string, it will be used as the indent string.
+  if (isString(space)) {
+    return space
+  }
+
+  let i
+  let indent = ''
+
+  if (isNumber(space)) {
+    for (i = 0; i < space; i += 1) {
+      indent += ' '
+    }
+  }
+
+  return indent
+}
 
 // @param {function()|Array} replacer
 // @param {string|number} space
-function stringify (value, replacer, space) {
+module.exports = (value, replacer, space) => {
   // The stringify method takes a value and an optional replacer, and an optional
   // space parameter, and returns a JSON text. The replacer can be a function
   // that can replace values, or an array of strings that will select the keys.
@@ -261,25 +270,15 @@ function stringify (value, replacer, space) {
 
   // If the space parameter is a number, make an indent string containing that
   // many spaces.
-  let i
-  let indent = ''
-  if (typeof space === 'number') {
-    for (i = 0; i < space; i += 1) {
-      indent += ' '
-    }
-
-  // If the space parameter is a string, it will be used as the indent string.
-  } else if (typeof space === 'string') {
-    indent = space
-  }
+  const indent = get_indent(space)
 
   // If there is a replacer, it must be a function or an array.
   // Otherwise, throw an error.
-  if (replacer && typeof replacer !== 'function' && !is_array(replacer)) {
-    throw new Error('JSON.stringify')
+  if (!isFunction(replacer) || !isArray(replacer)) {
+    replacer = null
   }
 
-  if (!is_object(value)) {
+  if (!isObject(value)) {
     return str('', {'': value}, replacer, indent, '')
   }
 
@@ -296,18 +295,4 @@ function stringify (value, replacer, space) {
     .filter(Boolean)
     .join('\n')
     : result
-}
-
-
-function join (host, key, joiner) {
-  return host[key]
-    ? join_comments(host[key], joiner)
-    : ''
-}
-
-
-function join_comments (value, joiner) {
-  return is_array(value)
-    ? value.join(joiner || '\n')
-    : value
 }

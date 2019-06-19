@@ -78,7 +78,7 @@ And it does the similar thing as the vanilla one, but also deal with extra prope
 
 #### space
 
-If space is not specified, or the space is an empty string, the result of `json.stringify()` will be no comments.
+If space is not specified, or the space is an empty string, the result of `stringify()` will have no comments.
 
 For the case above:
 

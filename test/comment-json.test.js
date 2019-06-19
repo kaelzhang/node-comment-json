@@ -3,7 +3,7 @@
 const {expect} = require('chai')
 const fixture = require('test-fixture')
 const fs = require('fs')
-const json = require('../')
+const json = require('..')
 
 function each (subjects, replacers, spaces, iterator) {
   subjects.forEach(subject => {
