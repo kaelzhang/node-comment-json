@@ -68,10 +68,6 @@ const comment_stringify = (value, line) => line
 
 // display_block `boolean` whether the comment is always a block text
 const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
-  if (!deeper_gap) {
-    return EMPTY
-  }
-
   const comments = host[Symbol.for(symbol_tag)]
   if (!comments || !comments.length) {
     return EMPTY
@@ -102,10 +98,6 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
 }
 
 const join_content = (inside, value, indent, gap) => {
-  if (!indent) {
-    return inside
-  }
-
   const comment = process_comments(value, BEFORE, indent + gap, true)
 
   return comment || inside
@@ -127,9 +119,7 @@ const join_content = (inside, value, indent, gap) => {
 const array_stringify = (value, replacer, indent, gap) => {
   const deeper_gap = gap + indent
   // Between two items except indent
-  const delimiter = indent
-    ? LF + gap
-    : EMPTY
+  const delimiter = LF + gap
 
   const {length} = value
   const max = length - 1
@@ -169,9 +159,7 @@ const object_stringify = (value, replacer, indent, gap) => {
 
   const deeper_gap = gap + indent
   // Between two key-value pairs except indent
-  const delimiter = indent
-    ? LF + gap
-    : EMPTY
+  const delimiter = LF + gap
 
   const colon_value_gap = indent
     ? SPACE
@@ -303,6 +291,10 @@ module.exports = (value, replacer, space) => {
   // many spaces.
   const indent = get_indent(space)
 
+  if (!indent) {
+    return JSON.stringify(value, replacer, indent)
+  }
+
   // ~~If there is a replacer, it must be a function or an array.
   // Otherwise, throw an error.~~
   // vanilla `JSON.parse` allow invalid replacer
@@ -312,9 +304,7 @@ module.exports = (value, replacer, space) => {
 
   const str = stringify('', {'': value}, replacer, indent, '')
 
-  return indent && value
-    ? process_comments(value, BEFORE_ALL, EMPTY).trimLeft()
-      + str
-      + process_comments(value, AFTER_ALL, EMPTY)
-    : str
+  return process_comments(value, BEFORE_ALL, EMPTY).trimLeft()
+    + str
+    + process_comments(value, AFTER_ALL, EMPTY)
 }
