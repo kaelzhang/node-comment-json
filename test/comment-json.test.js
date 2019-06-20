@@ -1,43 +1,44 @@
 const test = require('ava')
 const {resolve} = require('test-fixture')()
 const fs = require('fs')
+const {isFunction} = require('core-util-is')
 const {parse, stringify} = require('..')
 
 const SUBJECTS = [
-  // 'abc',
-  // 1,
-  // true,
-  // false,
-  // null,
-  // undefined,
-  // [],
-  // {},
-  // {a: 1, b: null},
+  'abc',
+  1,
+  true,
+  false,
+  null,
+  undefined,
+  [],
+  {},
+  {a: 1, b: null},
   ['abc', 1, {a: 1, b: undefined}],
-  // [undefined, 1, 'abc'],
-  // {
-  //   a: undefined,
-  //   b: false,
-  //   c: [1, '1']
-  // }
+  [undefined, 1, 'abc'],
+  {
+    a: undefined,
+    b: false,
+    c: [1, '1']
+  }
 ]
 
 const REPLACERS = [
-  null,
-  // (key, value) => {
-  //   if (typeof value === 'string') {
-  //     return undefined
-  //   }
+  // null,
+  (key, value) => {
+    if (typeof value === 'string') {
+      return undefined
+    }
 
-  //   return value
-  // }
+    return value
+  }
 ]
 
 const SPACES = [
   1,
-  // 2,
-  // '  ',
-  // '1'
+  2,
+  '  ',
+  '1'
 ]
 
 const each = (subjects, replacers, spaces, iterator) => {
@@ -45,7 +46,11 @@ const each = (subjects, replacers, spaces, iterator) => {
     replacers.forEach(replacer => {
       spaces.forEach(space => {
         const desc = [subject, replacer, space]
-        .map(s => JSON.stringify(s))
+        .map(s =>
+          isFunction(s)
+            ? 'replacer'
+            : JSON.stringify(s)
+        )
         .join(', ')
 
         iterator(subject, replacer, space, desc)
@@ -61,12 +66,11 @@ each(SUBJECTS, REPLACERS, SPACES, (subject, replacer, space, desc) => {
       stringify(subject, replacer, space)
     ]
 
-    console.log(compare)
+    // console.log(compare)
 
     t.is(...compare)
   })
 })
-
 
 // describe('vanilla usage of `json.stringify()`', () => {
 //   each(subjects, replacers, spaces, (subject, replacer, space, desc) => {

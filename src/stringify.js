@@ -21,6 +21,7 @@ const CURLY_BRACKET_OPEN = '{'
 const CURLY_BRACKET_CLOSE = '}'
 const COLON = ':'
 const COMMA = ','
+const STR_NULL = 'null'
 
 const RETURN_TRUE = () => true
 
@@ -99,14 +100,17 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
 
 const join_content = (inside, value, indent, gap) => {
   const comment = process_comments(value, BEFORE, indent + gap, true)
-
   return comment || inside
     // comment(c), inside(i), gap(g), indent(ii):
     // -  c,  i : c + LF + g + ii + i
     // - !c,  i : LF + g + ii + i     => c + LF + g + ii + i
     // -  c, !i : c + LF + g
     // - !c, !i : EMPTY
-    ? comment + LF + gap + inside && (indent + inside)
+    ? comment + LF + gap + (
+      inside
+        ? indent + inside
+        : EMPTY
+    )
     : EMPTY
 }
 
@@ -130,8 +134,11 @@ const array_stringify = (value, replacer, indent, gap) => {
   // Never use Array.prototype.forEach,
   // that we should iterate all items
   for (let i = 0; i < length; i ++) {
-    inside += stringify(i, value, replacer, indent, deeper_gap)
-      + process_comments(value, AFTER_VALUE(i), deeper_gap)
+    inside += (
+      stringify(i, value, replacer, indent, deeper_gap)
+      || STR_NULL
+    )
+    + process_comments(value, AFTER_VALUE(i), deeper_gap)
 
     inside += i === max
       ? delimiter
@@ -174,6 +181,8 @@ const object_stringify = (value, replacer, indent, gap) => {
   // }
 
   const keys = Object.keys(value)
+  .filter(k => value[k] !== undefined)
+
   const max = keys.length - 1
 
   const has_key = isArray(replacer)
@@ -186,13 +195,15 @@ const object_stringify = (value, replacer, indent, gap) => {
 
     if (has) {
       inside += quote(k)
-        + process_comments(value, AFTER_PROP(k), deeper_gap)
-        + COLON
-        + process_comments(value, AFTER_COLON(k), deeper_gap)
-        + colon_value_gap
-        + stringify(k, value, replacer, indent, deeper_gap)
-        + process_comments(value, AFTER_VALUE(k), deeper_gap)
-        + COMMA
+      + process_comments(value, AFTER_PROP(k), deeper_gap)
+      + COLON
+      + process_comments(value, AFTER_COLON(k), deeper_gap)
+      + colon_value_gap
+      + (
+        stringify(k, value, replacer, indent, deeper_gap)
+        || STR_NULL
+      )
+      + process_comments(value, AFTER_VALUE(k), deeper_gap)
     }
 
     inside += i === max
@@ -202,8 +213,8 @@ const object_stringify = (value, replacer, indent, gap) => {
   })
 
   return CURLY_BRACKET_OPEN
-    + join_content(inside, value, indent, gap)
-    + CURLY_BRACKET_CLOSE
+  + join_content(inside, value, indent, gap)
+  + CURLY_BRACKET_CLOSE
 }
 
 // @param {string} key
@@ -231,7 +242,7 @@ function stringify (key, holder, replacer, indent, gap) {
 
   case 'number':
     // JSON numbers must be finite. Encode non-finite numbers as null.
-    return Number.isFinite(value) ? String(value) : 'null'
+    return Number.isFinite(value) ? String(value) : STR_NULL
 
   case 'boolean':
   case 'null':
@@ -251,6 +262,7 @@ function stringify (key, holder, replacer, indent, gap) {
   // undefined
   default:
     // JSON.stringify(undefined) === undefined
+    // JSON.stringify('foo', () => undefined) === undefined
   }
 }
 
@@ -298,13 +310,15 @@ module.exports = (value, replacer, space) => {
   // ~~If there is a replacer, it must be a function or an array.
   // Otherwise, throw an error.~~
   // vanilla `JSON.parse` allow invalid replacer
-  if (!isFunction(replacer) || !isArray(replacer)) {
+  if (!isFunction(replacer) && !isArray(replacer)) {
     replacer = null
   }
 
   const str = stringify('', {'': value}, replacer, indent, '')
 
-  return process_comments(value, BEFORE_ALL, EMPTY).trimLeft()
-    + str
-    + process_comments(value, AFTER_ALL, EMPTY)
+  return isObject(value)
+    ? process_comments(value, BEFORE_ALL, EMPTY).trimLeft()
+      + str
+      + process_comments(value, AFTER_ALL, EMPTY)
+    : str
 }
