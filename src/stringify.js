@@ -1,18 +1,37 @@
 const {
   isArray, isObject, isFunction, isNumber, isString
 } = require('core-util-is')
-const hasOwnProperty = require('has-own-prop')
+const repeat = require('repeat-string')
 
 /////////////////////////////////////////////////////////////////
 // Modified from Douglas Crockford's JSON2:
 // https://github.com/douglascrockford/JSON-js
 /////////////////////////////////////////////////////////////////
 
-const KEY_PREFIX = '// '
-const KEY_PREFIX_LENGTH = 3
-
 // eslint-disable-next-line no-control-regex
 const ESCAPABLE = /[\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g
+
+// String constants
+const SPACE = ' '
+const EMPTY = ''
+const LF = '\n'
+const BRACKET_OPEN = '['
+const BRACKET_CLOSE = '['
+const CURLY_BRACKET_OPEN = '{'
+const CURLY_BRACKET_CLOSE = '}'
+const COLON = ':'
+const COMMA = ';'
+
+const RETURN_TRUE = () => true
+
+// Symbol tags
+const BEFORE_ALL = 'before-all'
+const BEFORE = 'before'
+const AFTER_PROP = prop => `after-prop:${prop}`
+const AFTER_COLON = prop => `after-colon:${prop}`
+const AFTER_VALUE = prop => `after-value:${prop}`
+const AFTER_COMMA = prop => `after-comma:${prop}`
+const AFTER_ALL = `after-all`
 
 // table of character substitutions
 const meta = {
@@ -43,13 +62,153 @@ const escape = string => {
 // and no backslash characters,
 // then we can safely slap some quotes around it.
 const quote = string => `"${escape(string)}"`
+const comment_stringify = (value, line) => line
+  ? `//${value}`
+  : `/*${value}*/`
+
+// display_block `boolean` whether the comment is always a block text
+const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
+  const comments = host[Symbol.for(symbol_tag)]
+  if (!comments || !comments.length) {
+    return EMPTY
+  }
+
+  let is_line_comment = false
+
+  const str = comments.reduce((prev, {
+    inline,
+    type,
+    value
+  }) => {
+    const delimiter = inline
+      ? SPACE
+      : LF + deeper_gap
+
+    is_line_comment = type === 'LineComment'
+
+    return prev + delimiter + comment_stringify(value, is_line_comment)
+  }, EMPTY)
+
+  return display_block
+    ? str + LF
+    : is_line_comment
+      // line comment should always end with a LF
+      ? str + LF + deeper_gap
+      : str
+}
+
+// | deeper_gap   |
+// | gap | indent |
+//       [
+//                "foo",
+//                "bar"
+//       ]
+const array_stringify = (value, replacer, indent, gap) => {
+  const deeper_gap = gap + indent
+  let str = BRACKET_OPEN
+
+  str += indent
+    // Only process comments when indent is not EMPTY
+    ? process_comments(value, BEFORE, deeper_gap, true) + deeper_gap
+    : LF + deeper_gap
+
+  // The value is an array. Stringify every element. Use null as a placeholder
+  // for non-JSON values.
+  const {length} = value
+  const max = length - 1
+
+  // Never use Array.prototype.forEach,
+  // that we should iterate all items
+  for (let i = 0; i < length; i ++) {
+    str += stringify(i, value, replacer, indent, deeper_gap)
+    if (indent) {
+      str += process_comments(value, AFTER_VALUE(i), deeper_gap)
+    }
+
+    if (i === max) {
+      str += LF + gap
+    } else {
+      str += process_comments(value, AFTER_COMMA(i), deeper_gap)
+        + COMMA + LF + deeper_gap
+    }
+  }
+
+  return str + BRACKET_CLOSE
+}
+
+// | deeper_gap   |
+// | gap | indent |
+//       {
+//                "foo": 1,
+//                "bar": 2
+//       }
+const object_stringify = (value, replacer, indent, gap) => {
+  // Due to a specification blunder in ECMAScript, typeof null is 'object',
+  // so watch out for that case.
+  if (!value) {
+    return 'null'
+  }
+
+  const deeper_gap = gap + indent
+  const colon_value_gap = indent
+    ? SPACE
+    : EMPTY
+
+  let str = CURLY_BRACKET_OPEN
+
+  str += indent
+    // Only process comments when indent is not EMPTY
+    ? process_comments(value, BEFORE, deeper_gap, true) + deeper_gap
+    : LF + deeper_gap
+
+  const keys = Object.keys(value)
+  const max = keys.length - 1
+
+  const has_key = isArray(replacer)
+    // replacer, as an array
+    ? key => replacer.includes(key)
+    : RETURN_TRUE
+
+  keys.forEach((k, i) => {
+    const has = has_key(k)
+
+    if (has) {
+      str += quote(k)
+
+      if (indent) {
+        str += process_comments(value, AFTER_PROP(k), deeper_gap)
+          + COLON
+          + process_comments(value, AFTER_COLON(k), deeper_gap)
+      } else {
+        str += COLON
+      }
+
+      str = colon_value_gap + stringify(k, value, replacer, indent, deeper_gap)
+
+      if (indent) {
+        str += process_comments(value, AFTER_VALUE(k), deeper_gap)
+      }
+
+      str += COMMA
+    }
+
+    if (i === max) {
+      str += LF + gap
+    } else {
+      str += process_comments(value, AFTER_COMMA(k), deeper_gap)
+        + COMMA + LF + deeper_gap
+    }
+  })
+
+  return str + CURLY_BRACKET_CLOSE
+}
 
 // @param {string} key
 // @param {Object} holder
 // @param {function()|Array} replacer
 // @param {string} indent
 // @param {string} gap
-const str = (key, holder, replacer, indent, gap) => {
+function stringify (key, holder, replacer, indent, gap) {
   let value = holder[key]
 
   // If the value has a toJSON method, call it to obtain a replacement value.
@@ -69,8 +228,7 @@ const str = (key, holder, replacer, indent, gap) => {
 
   case 'number':
     // JSON numbers must be finite. Encode non-finite numbers as null.
-    // eslint-disable-next-line no-restricted-globals
-    return isFinite(value) ? String(value) : 'null'
+    return Number.isFinite(value) ? String(value) : 'null'
 
   case 'boolean':
   case 'null':
@@ -80,184 +238,42 @@ const str = (key, holder, replacer, indent, gap) => {
     // the remote chance that this gets fixed someday.
     return String(value)
 
-    // If the type is 'object', we might be dealing with an object or an array or
-    // null.
+  // If the type is 'object', we might be dealing with an object or an array or
+  // null.
   case 'object':
+    return isArray(value)
+      ? array_stringify(value, replacer, indent, gap)
+      : object_stringify(value, replacer, indent, gap)
 
-    // Due to a specification blunder in ECMAScript, typeof null is 'object',
-    // so watch out for that case.
-    if (!value) {
-      return 'null'
-    }
-
-    var deeper_gap = gap + indent
-    // Make an array to hold the partial results of stringifying this object value.
-    var partial = []
-    var length
-    var i
-
-    if (isArray(value)) {
-      // The value is an array. Stringify every element. Use null as a placeholder
-      // for non-JSON values.
-      length = value.length
-      for (i = 0; i < length; i += 1) {
-        partial[i] = str(i, value, replacer, indent, deeper_gap) || 'null'
-      }
-
-      // Join all of the elements together, separated with commas, and wrap them in
-      // brackets.
-      return partial.length === 0
-        ? '[]'
-        : deeper_gap
-          ? `[\n${
-            deeper_gap}${partial.join(`,\n${deeper_gap}`)}\n${
-            gap}]`
-          : `[${partial.join(',')}]`
-    }
-
-    // If the replacer is an array, use it to select the members to be stringified.
-    var k // key
-    var v
-
-    if (replacer && isArray(replacer)) {
-      length = replacer.length
-      for (i = 0; i < length; i += 1) {
-        if (typeof replacer[i] === 'string') {
-          k = rep[i]
-          v = str(k, value, replacer, indent, deeper_gap)
-          if (v) {
-            partial.push(`${deeper_gap + quote(k) + (deeper_gap ? ': ' : ':') + v},\n`)
-          }
-        }
-      }
-    } else {
-      let comment
-      var push_prev = function (last) {
-        if (!prev) {
-          return
-        }
-
-        let v = prev[0]
-        if (!deeper_gap) {
-          partial.push(v)
-          return
-        }
-
-        const top = join(prev, 1, `\n${deeper_gap}`)
-        const right = prev[2]
-        if (top) {
-          // ```js
-          // {
-          //   '// a': {
-          //     pos: 'top',
-          //     body: '// comments'
-          //   },
-          //   a: 1
-          // }
-          // ```
-          // ->
-          // ```
-          // {
-          //   // comments
-          //   a: 1
-          // }
-          // ```
-          v = `${deeper_gap + top}\n${v}`
-        }
-
-        if (!last) {
-          v += ','
-        }
-
-        if (right) {
-          // ```js
-          // {
-          //   '// a': {
-          //     pos: 'right',
-          //     body: '// comments'
-          //   },
-          //   a: 1
-          // }
-          // ```
-          // ->
-          // ```
-          // {
-          //   a: 1 // comments
-          // }
-          // ```
-          v += ` ${join_comments(right)}`
-        }
-        partial.push(v + (last ? '' : '\n'))
-      }
-
-      let prev
-
-      // Otherwise, iterate through all of the keys in the object.
-      for (k in value) {
-        if (hasOwnProperty(value, k) && !is_comment(k, value)) {
-          v = str(k, value, replacer, indent, deeper_gap)
-          if (v) {
-            push_prev()
-            prev = [deeper_gap + quote(k) + (deeper_gap ? ': ' : ':') + v]
-
-            // Only apply comments when argument `space` is not empty.
-            if (deeper_gap && (comment = value[KEY_PREFIX + k])) {
-              prev = prev.concat(comment)
-            }
-          }
-        }
-      }
-    }
-
-    push_prev(true)
-
-    // Join all of the member texts together, separated with commas,
-    // and wrap them in braces.
-    return partial.length === 0
-      ? '{}'
-      : deeper_gap
-        ? `{\n${
-          partial.join('').replace(/,\n$/, '')}\n${
-          gap}}`
-        : `{${partial.join(',')}}`
+  // undefined
   default:
+    return 'null'
   }
 }
 
 
-function is_comment (key, holder) {
-  return key === '//^'
-    || key === '//$'
-    || !!~ key.indexOf(KEY_PREFIX)
-      // And the corresponding property must exist
-      && key.slice(KEY_PREFIX_LENGTH) in holder
-}
+// function is_comment (key, holder) {
+//   return key === '//^'
+//     || key === '//$'
+//     || !!~ key.indexOf(KEY_PREFIX)
+//       // And the corresponding property must exist
+//       && key.slice(KEY_PREFIX_LENGTH) in holder
+// }
 
-const join_comments = (value, joiner) => isArray(value)
-  ? value.join(joiner || '\n')
-  : value
+// const join_comments = (value, joiner) => isArray(value)
+//   ? value.join(joiner || '\n')
+//   : value
 
-const join = (host, key, joiner) => host[key]
-  ? join_comments(host[key], joiner)
-  : ''
+// const join = (host, key, joiner) => host[key]
+//   ? join_comments(host[key], joiner)
+//   : ''
 
-const get_indent = space => {
+const get_indent = space => isString(space)
   // If the space parameter is a string, it will be used as the indent string.
-  if (isString(space)) {
-    return space
-  }
-
-  let i
-  let indent = ''
-
-  if (isNumber(space)) {
-    for (i = 0; i < space; i += 1) {
-      indent += ' '
-    }
-  }
-
-  return indent
-}
+  ? space
+  : isNumber(space)
+    ? repeat(SPACE, space)
+    : EMPTY
 
 // @param {function()|Array} replacer
 // @param {string|number} space
@@ -272,27 +288,18 @@ module.exports = (value, replacer, space) => {
   // many spaces.
   const indent = get_indent(space)
 
-  // If there is a replacer, it must be a function or an array.
-  // Otherwise, throw an error.
+  // ~~If there is a replacer, it must be a function or an array.
+  // Otherwise, throw an error.~~
+  // vanilla `JSON.parse` allow invalid replacer
   if (!isFunction(replacer) || !isArray(replacer)) {
     replacer = null
   }
 
-  if (!isObject(value)) {
-    return str('', {'': value}, replacer, indent, '')
-  }
+  const str = stringify('', {'': value}, replacer, indent, '')
 
-  const head_comments = join(value, '//^')
-  const foot_comments = join(value, '//$')
-
-  const result = str('', {'': value}, replacer, indent, '')
-
-  // Make a fake root object containing our value under the key of ''.
-  // Return the result of stringifying the value.
-  return indent
-    ? [head_comments, result, foot_comments]
-    // filter empty `head_comments` or `foot_comments`
-    .filter(Boolean)
-    .join('\n')
-    : result
+  return indent && value
+    ? process_comments(value, BEFORE_ALL, EMPTY)
+      + str
+      + process_comments(value, AFTER_ALL, EMPTY)
+    : str
 }
