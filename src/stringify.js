@@ -98,7 +98,15 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
       : str
 }
 
-const join_content = (inside, value, indent, gap) => {
+let replacer = null
+let indent = EMPTY
+
+const clean = () => {
+  replacer = null
+  indent = EMPTY
+}
+
+const join_content = (inside, value, gap) => {
   const comment = process_comments(value, BEFORE, indent + gap, true)
   return comment || inside
     // comment(c), inside(i), gap(g), indent(ii):
@@ -120,7 +128,7 @@ const join_content = (inside, value, indent, gap) => {
 //                "foo",
 //                "bar"
 //       ]
-const array_stringify = (value, replacer, indent, gap) => {
+const array_stringify = (value, gap) => {
   const deeper_gap = gap + indent
   // Between two items except indent
   const delimiter = LF + gap
@@ -135,7 +143,7 @@ const array_stringify = (value, replacer, indent, gap) => {
   // that we should iterate all items
   for (let i = 0; i < length; i ++) {
     inside += (
-      stringify(i, value, replacer, indent, deeper_gap)
+      stringify(i, value, deeper_gap)
       || STR_NULL
     )
     + process_comments(value, AFTER_VALUE(i), deeper_gap)
@@ -147,7 +155,7 @@ const array_stringify = (value, replacer, indent, gap) => {
   }
 
   return BRACKET_OPEN
-   + join_content(inside, value, indent, gap)
+   + join_content(inside, value, gap)
    + BRACKET_CLOSE
 }
 
@@ -157,7 +165,7 @@ const array_stringify = (value, replacer, indent, gap) => {
 //                "foo": 1,
 //                "bar": 2
 //       }
-const object_stringify = (value, replacer, indent, gap) => {
+const object_stringify = (value, gap) => {
   // Due to a specification blunder in ECMAScript, typeof null is 'object',
   // so watch out for that case.
   if (!value) {
@@ -173,12 +181,16 @@ const object_stringify = (value, replacer, indent, gap) => {
     : EMPTY
 
   // From the first element to before close
-  let inside = EMPTY
+  const inside = []
 
   // // Only process comments when indent is not EMPTY
   // if (indent) {
   //   str += process_comments(value, BEFORE, deeper_gap, true)
   // }
+
+  if (isArray(replacer)) {
+
+  }
 
   const keys = Object.keys(value)
   .filter(k => value[k] !== undefined)
@@ -222,7 +234,7 @@ const object_stringify = (value, replacer, indent, gap) => {
 // @param {function()|Array} replacer
 // @param {string} indent
 // @param {string} gap
-function stringify (key, holder, replacer, indent, gap) {
+function stringify (key, holder, gap) {
   let value = holder[key]
 
   // If the value has a toJSON method, call it to obtain a replacement value.
@@ -256,8 +268,8 @@ function stringify (key, holder, replacer, indent, gap) {
   // null.
   case 'object':
     return isArray(value)
-      ? array_stringify(value, replacer, indent, gap)
-      : object_stringify(value, replacer, indent, gap)
+      ? array_stringify(value, replacer, gap)
+      : object_stringify(value, replacer, gap)
 
   // undefined
   default:
@@ -265,23 +277,6 @@ function stringify (key, holder, replacer, indent, gap) {
     // JSON.stringify('foo', () => undefined) === undefined
   }
 }
-
-
-// function is_comment (key, holder) {
-//   return key === '//^'
-//     || key === '//$'
-//     || !!~ key.indexOf(KEY_PREFIX)
-//       // And the corresponding property must exist
-//       && key.slice(KEY_PREFIX_LENGTH) in holder
-// }
-
-// const join_comments = (value, joiner) => isArray(value)
-//   ? value.join(joiner || '\n')
-//   : value
-
-// const join = (host, key, joiner) => host[key]
-//   ? join_comments(host[key], joiner)
-//   : ''
 
 const get_indent = space => isString(space)
   // If the space parameter is a string, it will be used as the indent string.
@@ -292,7 +287,7 @@ const get_indent = space => isString(space)
 
 // @param {function()|Array} replacer
 // @param {string|number} space
-module.exports = (value, replacer, space) => {
+module.exports = (value, replacer_, space) => {
   // The stringify method takes a value and an optional replacer, and an optional
   // space parameter, and returns a JSON text. The replacer can be a function
   // that can replace values, or an array of strings that will select the keys.
@@ -301,20 +296,25 @@ module.exports = (value, replacer, space) => {
 
   // If the space parameter is a number, make an indent string containing that
   // many spaces.
-  const indent = get_indent(space)
+  const indent_ = get_indent(space)
 
-  if (!indent) {
-    return JSON.stringify(value, replacer, indent)
+  if (!indent_) {
+    return JSON.stringify(value, replacer_)
   }
 
   // ~~If there is a replacer, it must be a function or an array.
   // Otherwise, throw an error.~~
   // vanilla `JSON.parse` allow invalid replacer
-  if (!isFunction(replacer) && !isArray(replacer)) {
-    replacer = null
+  if (!isFunction(replacer_) && !isArray(replacer_)) {
+    replacer_ = null
   }
 
-  const str = stringify('', {'': value}, replacer, indent, '')
+  replacer = replacer_
+  indent = indent_
+
+  const str = stringify('', {'': value}, EMPTY)
+
+  clean()
 
   return isObject(value)
     ? process_comments(value, BEFORE_ALL, EMPTY).trimLeft()

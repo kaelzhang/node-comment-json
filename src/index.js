@@ -1,4 +1,4 @@
-const {parse} = require('json-parser')
+const {parse, tokenize} = require('./parse')
 const stringify = require('./stringify')
 
 module.exports = {
