@@ -16,11 +16,11 @@ const SPACE = ' '
 const EMPTY = ''
 const LF = '\n'
 const BRACKET_OPEN = '['
-const BRACKET_CLOSE = '['
+const BRACKET_CLOSE = ']'
 const CURLY_BRACKET_OPEN = '{'
 const CURLY_BRACKET_CLOSE = '}'
 const COLON = ':'
-const COMMA = ';'
+const COMMA = ','
 
 const RETURN_TRUE = () => true
 
@@ -68,6 +68,10 @@ const comment_stringify = (value, line) => line
 
 // display_block `boolean` whether the comment is always a block text
 const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
+  if (!deeper_gap) {
+    return EMPTY
+  }
+
   const comments = host[Symbol.for(symbol_tag)]
   if (!comments || !comments.length) {
     return EMPTY
@@ -90,11 +94,28 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
   }, EMPTY)
 
   return display_block
-    ? str + LF
+    ? str
     : is_line_comment
       // line comment should always end with a LF
       ? str + LF + deeper_gap
       : str
+}
+
+const join_content = (inside, value, indent, gap) => {
+  if (!indent) {
+    return inside
+  }
+
+  const comment = process_comments(value, BEFORE, indent + gap, true)
+
+  return comment || inside
+    // comment(c), inside(i), gap(g), indent(ii):
+    // -  c,  i : c + LF + g + ii + i
+    // - !c,  i : LF + g + ii + i     => c + LF + g + ii + i
+    // -  c, !i : c + LF + g
+    // - !c, !i : EMPTY
+    ? comment + LF + gap + inside && (indent + inside)
+    : EMPTY
 }
 
 // | deeper_gap   |
@@ -105,35 +126,32 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
 //       ]
 const array_stringify = (value, replacer, indent, gap) => {
   const deeper_gap = gap + indent
-  let str = BRACKET_OPEN
+  // Between two items except indent
+  const delimiter = indent
+    ? LF + gap
+    : EMPTY
 
-  str += indent
-    // Only process comments when indent is not EMPTY
-    ? process_comments(value, BEFORE, deeper_gap, true) + deeper_gap
-    : LF + deeper_gap
-
-  // The value is an array. Stringify every element. Use null as a placeholder
-  // for non-JSON values.
   const {length} = value
   const max = length - 1
+
+  // From the first element to before close
+  let inside = EMPTY
 
   // Never use Array.prototype.forEach,
   // that we should iterate all items
   for (let i = 0; i < length; i ++) {
-    str += stringify(i, value, replacer, indent, deeper_gap)
-    if (indent) {
-      str += process_comments(value, AFTER_VALUE(i), deeper_gap)
-    }
+    inside += stringify(i, value, replacer, indent, deeper_gap)
+      + process_comments(value, AFTER_VALUE(i), deeper_gap)
 
-    if (i === max) {
-      str += LF + gap
-    } else {
-      str += process_comments(value, AFTER_COMMA(i), deeper_gap)
-        + COMMA + LF + deeper_gap
-    }
+    inside += i === max
+      ? delimiter
+      : process_comments(value, AFTER_COMMA(i), deeper_gap)
+        + COMMA + delimiter + indent
   }
 
-  return str + BRACKET_CLOSE
+  return BRACKET_OPEN
+   + join_content(inside, value, indent, gap)
+   + BRACKET_CLOSE
 }
 
 // | deeper_gap   |
@@ -150,16 +168,22 @@ const object_stringify = (value, replacer, indent, gap) => {
   }
 
   const deeper_gap = gap + indent
+  // Between two key-value pairs except indent
+  const delimiter = indent
+    ? LF + gap
+    : EMPTY
+
   const colon_value_gap = indent
     ? SPACE
     : EMPTY
 
-  let str = CURLY_BRACKET_OPEN
+  // From the first element to before close
+  let inside = EMPTY
 
-  str += indent
-    // Only process comments when indent is not EMPTY
-    ? process_comments(value, BEFORE, deeper_gap, true) + deeper_gap
-    : LF + deeper_gap
+  // // Only process comments when indent is not EMPTY
+  // if (indent) {
+  //   str += process_comments(value, BEFORE, deeper_gap, true)
+  // }
 
   const keys = Object.keys(value)
   const max = keys.length - 1
@@ -173,34 +197,25 @@ const object_stringify = (value, replacer, indent, gap) => {
     const has = has_key(k)
 
     if (has) {
-      str += quote(k)
-
-      if (indent) {
-        str += process_comments(value, AFTER_PROP(k), deeper_gap)
-          + COLON
-          + process_comments(value, AFTER_COLON(k), deeper_gap)
-      } else {
-        str += COLON
-      }
-
-      str = colon_value_gap + stringify(k, value, replacer, indent, deeper_gap)
-
-      if (indent) {
-        str += process_comments(value, AFTER_VALUE(k), deeper_gap)
-      }
-
-      str += COMMA
+      inside += quote(k)
+        + process_comments(value, AFTER_PROP(k), deeper_gap)
+        + COLON
+        + process_comments(value, AFTER_COLON(k), deeper_gap)
+        + colon_value_gap
+        + stringify(k, value, replacer, indent, deeper_gap)
+        + process_comments(value, AFTER_VALUE(k), deeper_gap)
+        + COMMA
     }
 
-    if (i === max) {
-      str += LF + gap
-    } else {
-      str += process_comments(value, AFTER_COMMA(k), deeper_gap)
-        + COMMA + LF + deeper_gap
-    }
+    inside += i === max
+      ? delimiter
+      : process_comments(value, AFTER_COMMA(k), deeper_gap)
+        + COMMA + delimiter + indent
   })
 
-  return str + CURLY_BRACKET_CLOSE
+  return CURLY_BRACKET_OPEN
+    + join_content(inside, value, indent, gap)
+    + CURLY_BRACKET_CLOSE
 }
 
 // @param {string} key
@@ -247,7 +262,7 @@ function stringify (key, holder, replacer, indent, gap) {
 
   // undefined
   default:
-    return 'null'
+    // JSON.stringify(undefined) === undefined
   }
 }
 
@@ -298,7 +313,7 @@ module.exports = (value, replacer, space) => {
   const str = stringify('', {'': value}, replacer, indent, '')
 
   return indent && value
-    ? process_comments(value, BEFORE_ALL, EMPTY)
+    ? process_comments(value, BEFORE_ALL, EMPTY).trimLeft()
       + str
       + process_comments(value, AFTER_ALL, EMPTY)
     : str
