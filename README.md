@@ -38,6 +38,8 @@ So, **if you want to parse a JSON string with comments, modify it, then save it 
 $ npm i comment-json
 ```
 
+For TypeScript developers, [`@types/comment-json`](https://www.npmjs.com/package/@types/comment-json) could be used.
+
 ## Usage
 
 package.json:
