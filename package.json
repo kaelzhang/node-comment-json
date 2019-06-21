@@ -1,7 +1,7 @@
 {
   "name": "comment-json",
-  "version": "2.0.7",
-  "description": "Parse and stringify JSON with comments. It will retain comments even when after saved!",
+  "version": "2.0.8",
+  "description": "Parse and stringify JSON with comments. It will retain comments even after saved!",
   "main": "src/index.js",
   "scripts": {
     "test": "NODE_DEBUG=comment-json nyc ava --timeout=10s --verbose",

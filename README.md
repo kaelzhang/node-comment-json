@@ -15,6 +15,8 @@
 
 # comment-json
 
+Parse and stringify JSON with comments. It will retain comments even after saved!
+
 - [Parse](#parse) JSON strings with comments into JavaScript objects and MAINTAIN comments
   - supports comments everywhere, yes, **EVERYWHERE** in a JSON file, eventually 😆
   - fixes the known issue about comments inside arrays.
