@@ -143,6 +143,7 @@ And the result will be:
 There are **EIGHT** kinds of symbol properties:
 
 ```js
+// Comments before everything
 Symbol.for('before-all')
 
 // If all things inside an object or an array are comments
@@ -172,6 +173,7 @@ Symbol.for(`after-value:${prop}`)
 // - the last item of an array
 Symbol.for('after')
 
+// Comments after everything
 Symbol.for('after-all')
 ```
 
