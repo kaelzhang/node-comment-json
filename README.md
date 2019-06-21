@@ -268,7 +268,11 @@ null
 console.log(parsed === null) // true
 ```
 
-## stringify(object, replacer?, space?): string
+## stringify()
+
+```ts
+stringify(object: any, replacer?, space?): string
+```
 
 The arguments are the same as the vanilla [`JSON.stringify`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
