@@ -144,6 +144,10 @@ const array_stringify = (value, gap) => {
   for (let i = 0; i < length; i ++) {
     const before = process_comments(value, BEFORE(i), deeper_gap, true)
 
+    if (i !== 0) {
+      inside += COMMA
+    }
+
     inside += before
     + (
       before
@@ -156,10 +160,6 @@ const array_stringify = (value, gap) => {
       || STR_NULL
     )
     + process_comments(value, AFTER_VALUE(i), deeper_gap)
-
-    if (i === max) {
-      inside += COMMA
-    }
   }
 
   inside += process_comments(value, PREFIX_AFTER, deeper_gap)
@@ -196,6 +196,7 @@ const object_stringify = (value, gap) => {
     // Stringified value
     const sv = stringify(key, value, deeper_gap)
 
+    // If a value is undefined, then the key-value pair should be ignored
     if (sv === UNDEFINED) {
       return
     }
@@ -272,8 +273,8 @@ function stringify (key, holder, gap) {
   // null.
   case 'object':
     return isArray(value)
-      ? array_stringify(value, replacer, gap)
-      : object_stringify(value, replacer, gap)
+      ? array_stringify(value, gap)
+      : object_stringify(value, gap)
 
   // undefined
   default:

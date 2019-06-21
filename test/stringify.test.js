@@ -5,17 +5,17 @@ const {isFunction} = require('core-util-is')
 const {parse, stringify} = require('../src')
 
 const SUBJECTS = [
-  // 'abc',
-  // 1,
-  // true,
-  // false,
-  // null,
-  // undefined,
-  // [],
-  // {},
-  // {a: 1, b: null},
-  // ['abc', 1, {a: 1, b: undefined}],
-  // [undefined, 1, 'abc'],
+  'abc',
+  1,
+  true,
+  false,
+  null,
+  undefined,
+  [],
+  {},
+  {a: 1, b: null},
+  ['abc', 1, {a: 1, b: undefined}],
+  [undefined, 1, 'abc'],
   {
     a: undefined,
     b: false,
@@ -37,9 +37,9 @@ const REPLACERS = [
 
 const SPACES = [
   1,
-  // 2,
-  // '  ',
-  // '1'
+  2,
+  '  ',
+  '1'
 ]
 
 const each = (subjects, replacers, spaces, iterator) => {
