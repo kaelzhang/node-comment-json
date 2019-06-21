@@ -22,6 +22,14 @@
 
 The usage of `comment-json` is exactly the same as the vanilla [`JSON`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON) object.
 
+## Why?
+
+There are many other libraries that can deal with JSON with comments, such as [json5](https://npmjs.org/package/json5), or [strip-json-comments](https://npmjs.org/package/strip-json-comments), but none of them can stringify the parsed object and return back a JSON string the same as the original content.
+
+Imagine that if the user settings are saved in `${library}.json`， and the user has written a lot of comments to improve readability. If the library `library` need to modify the user setting, such as modifying some property values and adding new fields, and if the library uses `json5` to read the settings, all comments will disappear after modified which will drive people insane.
+
+So, **if you want to parse a JSON string with comments, modify it, then save it back**, `comment-json` is your must choice!
+
 ## Install
 
 ```sh
@@ -51,7 +59,7 @@ const obj = parse(fs.readFileSync('package.json').toString())
 console.log(obj.name) // comment-json
 
 stringify(obj, null, 2)
-// Will be the same as package.json,
+// Will be the same as package.json, Oh yeah! 😆
 // which will be very useful if we use a json file to store configurations.
 ```
 
@@ -99,6 +107,9 @@ If the `content` is:
 ```js
 const parsed = parse(content)
 console.log(parsed)
+
+console.log(stringify(parsed, null, 2))
+// 🚀 Exact as the content above! 🚀
 ```
 
 And the result will be:
