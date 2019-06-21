@@ -45,11 +45,13 @@ const free = () => {
   reviver = null
 }
 
+const PREFIX_BEFORE_ALL = 'before-all'
 const PREFIX_BEFORE = 'before'
 const PREFIX_AFTER_PROP = 'after-prop'
 const PREFIX_AFTER_COLON = 'after-colon'
 const PREFIX_AFTER_VALUE = 'after-value'
 const PREFIX_AFTER = 'after'
+const PREFIX_AFTER_ALL = 'after-all'
 
 const BRACKET_OPEN = '['
 const BRACKET_CLOSE = ']'
@@ -335,11 +337,11 @@ const parse = (code, rev, no_comments) => {
 
   set_comments_host({})
 
-  parse_comments(PREFIX_BEFORE)
+  parse_comments(PREFIX_BEFORE_ALL)
 
   let result = walk()
 
-  parse_comments(PREFIX_AFTER)
+  parse_comments(PREFIX_AFTER_ALL)
 
   if (current) {
     unexpected()
@@ -373,10 +375,12 @@ module.exports = {
   tokenize,
 
   PREFIX_BEFORE,
+  PREFIX_BEFORE_ALL,
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
   PREFIX_AFTER_VALUE,
   PREFIX_AFTER,
+  PREFIX_AFTER_ALL,
 
   BRACKET_OPEN,
   BRACKET_CLOSE,

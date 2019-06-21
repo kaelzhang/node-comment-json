@@ -1,7 +1,7 @@
 const test = require('ava')
 const {resolve} = require('test-fixture')()
 const fs = require('fs')
-const {isFunction} = require('core-util-is')
+const {isFunction, isString} = require('core-util-is')
 const {parse, stringify} = require('../src')
 
 const SUBJECTS = [
@@ -60,85 +60,47 @@ const each = (subjects, replacers, spaces, iterator) => {
   })
 }
 
-each(SUBJECTS, REPLACERS, SPACES, (subject, replacer, space, desc) => {
-  test(`stringify: ${desc}`, t => {
-    const compare = [
-      JSON.stringify(subject, replacer, space),
-      stringify(subject, replacer, space)
-    ]
+// each(SUBJECTS, REPLACERS, SPACES, (subject, replacer, space, desc) => {
+//   test(`stringify: ${desc}`, t => {
+//     const compare = [
+//       JSON.stringify(subject, replacer, space),
+//       stringify(subject, replacer, space)
+//     ]
 
-    console.log(compare)
+//     // console.log(compare)
 
-    t.is(...compare)
+//     t.is(...compare)
+//   })
+// })
+
+const OLD_CASES = [
+  'deep',
+  'duplex',
+  'indent',
+  'simple',
+  'single-right',
+  'single-top'
+]
+
+OLD_CASES.forEach(name => {
+  [
+    '  ',
+    2,
+    3,
+    null
+  ].forEach(space => {
+    const s = isString(space)
+      ? space.length
+      : space
+
+    test(`${name}, space: ${s} (${space})`, t => {
+      const file = resolve(`${name}-null-${s}.json`)
+
+      const content = fs.readFileSync(file).toString().trim()
+      const parsed = parse(content)
+      const str = stringify(parsed, null, space)
+
+      t.is(str, content)
+    })
   })
 })
-
-// describe('vanilla usage of `json.stringify()`', () => {
-//   each(subjects, replacers, spaces, (subject, replacer, space, desc) => {
-//     it(`stringify: ${desc}`, () => {
-//       expect(json.stringify(subject, replacer, space))
-//       .to
-//       .equal(JSON.stringify(subject, replacer, space))
-//     })
-//   })
-// })
-
-// describe('enhanced json.stringify()', () => {
-//   const f = fixture()
-
-//   function run (name, replacer, space, desc) {
-//     const file = f.resolve(`${name}.js`)
-//     let e = `${[name, replacer, space].map(s => s === null
-//       ? 'null'
-//       : s === undefined
-//         ? 'undefined'
-//         : s).join('-')}.json`
-//     e = f.resolve(e)
-
-//     it(desc, () => {
-//       expect(json.stringify(require(file), replacer, space)).to.equal(fs.readFileSync(e).toString())
-//     })
-//   }
-
-//   each([
-//     'single-top',
-//     'single-right',
-//     'duplex',
-//     'deep',
-//     // simple case, of which the comment is not an array.
-//     'simple',
-//     // #2
-//     'indent'
-//   ],
-//   [null],
-//   [2, 3, null], run)
-// })
-
-
-// describe('json.stringify() should take care of prototype', () => {
-//   it('normal case', () => {
-//     const obj = {
-//       a: 1
-//     }
-
-//     obj.__proto__ = {
-//       b: 1
-//     }
-
-//     expect(json.stringify(obj)).to.equal('{"a":1}')
-//   })
-
-//   it('with comments', () => {
-//     const obj = {
-//       a: 1,
-//       '//^': ['// a']
-//     }
-
-//     obj.__proto__ = {
-//       b: 1
-//     }
-
-//     expect(json.stringify(obj)).to.equal('{"a":1}')
-//     expect(json.stringify(obj, null, 2)).to.equal('// a\n{\n  "a": 1\n}')
-//   })
-// })

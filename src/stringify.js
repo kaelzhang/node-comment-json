@@ -4,11 +4,13 @@ const {
 const repeat = require('repeat-string')
 
 const {
+  PREFIX_BEFORE_ALL,
   PREFIX_BEFORE,
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
   PREFIX_AFTER_VALUE,
   PREFIX_AFTER,
+  PREFIX_AFTER_ALL,
 
   BRACKET_OPEN,
   BRACKET_CLOSE,
@@ -92,12 +94,12 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
     return prev + delimiter + comment_stringify(value, is_line_comment)
   }, EMPTY)
 
+
   return display_block
-    ? str
-    : is_line_comment
-      // line comment should always end with a LF
-      ? str + LF + deeper_gap
-      : str
+  // line comment should always end with a LF
+  || is_line_comment
+    ? str + LF + deeper_gap
+    : str
 }
 
 let replacer = null
@@ -134,7 +136,6 @@ const array_stringify = (value, gap) => {
   const deeper_gap = gap + indent
 
   const {length} = value
-  const max = length - 1
 
   // From the item to before close
   let inside = EMPTY
@@ -148,18 +149,12 @@ const array_stringify = (value, gap) => {
       inside += COMMA
     }
 
-    inside += before
-    + (
-      before
-        ? EMPTY
-        : LF + deeper_gap
-    )
-    + (
-      stringify(i, value, deeper_gap)
-      // JSON.stringify([undefined])  => [null]
-      || STR_NULL
-    )
-    + process_comments(value, AFTER_VALUE(i), deeper_gap)
+    inside += before || (LF + deeper_gap)
+
+    // JSON.stringify([undefined])  => [null]
+    inside += stringify(i, value, deeper_gap) || STR_NULL
+
+    inside += process_comments(value, AFTER_VALUE(i), deeper_gap)
   }
 
   inside += process_comments(value, PREFIX_AFTER, deeper_gap)
@@ -208,9 +203,8 @@ const object_stringify = (value, gap) => {
     first = false
 
     const before = process_comments(value, BEFORE(key), deeper_gap, true)
-    if (!before) {
-      inside += LF + deeper_gap
-    }
+
+    inside += before || (LF + deeper_gap)
 
     inside += quote(key)
     + process_comments(value, AFTER_PROP(key), deeper_gap)
@@ -322,8 +316,8 @@ module.exports = (value, replacer_, space) => {
   clean()
 
   return isObject(value)
-    ? process_comments(value, PREFIX_BEFORE, EMPTY).trimLeft()
+    ? process_comments(value, PREFIX_BEFORE_ALL, EMPTY).trimLeft()
       + str
-      + process_comments(value, PREFIX_AFTER, EMPTY)
+      + process_comments(value, PREFIX_AFTER_ALL, EMPTY).trimRight()
     : str
 }

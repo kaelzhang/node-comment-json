@@ -15,7 +15,7 @@ const cases = [
     o: '{"a":1}',
     e (t, obj) {
       t.is(obj.a, 1)
-      t.is(obj[Symbol.for('before')][0].value, 'top')
+      t.is(obj[Symbol.for('before-all')][0].value, 'top')
     }
   },
   {
@@ -25,7 +25,7 @@ const cases = [
     e (t, obj) {
       t.is(obj.a, 1)
 
-      const [c1, c2] = obj[Symbol.for('before')]
+      const [c1, c2] = obj[Symbol.for('before-all')]
       t.is(c1.value, 'top')
       t.is(c1.type, 'LineComment')
       t.is(c2.value, 'abc')
@@ -38,7 +38,7 @@ const cases = [
     o: '{"a":1}',
     e (t, obj) {
       t.is(obj.a, 1)
-      const [c] = obj[Symbol.for('after')]
+      const [c] = obj[Symbol.for('after-all')]
       t.is(c.value, 'bot')
     }
   },
@@ -48,7 +48,7 @@ const cases = [
     o: '{"a":1}',
     e (t, obj) {
       t.is(obj.a, 1)
-      const [c1, c2] = obj[Symbol.for('after')]
+      const [c1, c2] = obj[Symbol.for('after-all')]
       t.is(c1.value, 'top')
       t.is(c2.value, 'abc')
     }
@@ -191,7 +191,7 @@ g*/ //g2
       const [m] = obj.a[Symbol.for('after-value:0')]
       t.is(m.value, 'm')
 
-      const [f, l] = obj[Symbol.for('after')]
+      const [f, l] = obj[Symbol.for('after-all')]
       t.is(f.value, ' f')
       t.is(f.inline, true)
       t.is(l.value, 'l')
@@ -274,19 +274,19 @@ test('special: 1', async t => {
   const result = parser.parse(`//abc\n1`)
 
   t.is(Number(result), 1)
-  t.is(result[Symbol.for('before')][0].value, 'abc')
+  t.is(result[Symbol.for('before-all')][0].value, 'abc')
 })
 
 test('special: "foo"', async t => {
   const result = parser.parse(`//abc\n"foo"`)
 
   t.is(String(result), 'foo')
-  t.is(result[Symbol.for('before')][0].value, 'abc')
+  t.is(result[Symbol.for('before-all')][0].value, 'abc')
 })
 
 test('special: true', async t => {
   const result = parser.parse(`//abc\ntrue`)
 
   t.true(Boolean(result))
-  t.is(result[Symbol.for('before')][0].value, 'abc')
+  t.is(result[Symbol.for('before-all')][0].value, 'abc')
 })

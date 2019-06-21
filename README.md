@@ -72,9 +72,9 @@ If the `content` is:
 
 ```js
 /**
- before
+ before-all
  */
-// before
+// before-all
 { // before:foo
   // before:foo
   /* before:foo */
@@ -93,7 +93,7 @@ If the `content` is:
   ] // after-value:bar
   // after-value:bar
 }
-// after
+// after-all
 ```
 
 ```js
@@ -106,13 +106,13 @@ And the result will be:
 ```js
 {
   // Comments before the JSON object
-  [Symbol.for('before')]: [{
+  [Symbol.for('before-all')]: [{
     type: 'BlockComment',
-    value: '\n before\n ',
+    value: '\n before-all\n ',
     inline: false
   }, {
     type: 'LineComment',
-    value: ' before',
+    value: ' before-all',
     inline: false
   }],
   ...
@@ -140,11 +140,12 @@ And the result will be:
 }
 ```
 
-There are **SIX** kinds of symbol properties:
+There are **EIGHT** kinds of symbol properties:
 
 ```js
-// - comment tokens before everything
-// - or if all things inside an object or an array are comments
+Symbol.for('before-all')
+
+// If all things inside an object or an array are comments
 Symbol.for('before')
 
 // comment tokens before
@@ -166,11 +167,12 @@ Symbol.for(`after-colon:${prop}`)
 // or the closing bracket(`}` or `]`)
 Symbol.for(`after-value:${prop}`)
 
-// comment tokens after everything
-// - or if comments after
-//   - the last key-value:pair of an object
-//   - the last item of an array
+// if comments after
+// - the last key-value:pair of an object
+// - the last item of an array
 Symbol.for('after')
+
+Symbol.for('after-all')
 ```
 
 And the value of each symbol property is an **array** of `CommentToken`
