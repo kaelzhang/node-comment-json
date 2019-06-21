@@ -127,7 +127,7 @@ And the result will be:
   foo: 1,
   bar: [
     "baz",
-    "quux,
+    "quux",
 
     // The property of the array
     [Symbol.for('after-value:0')]: [{
