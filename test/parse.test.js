@@ -185,7 +185,7 @@ g*/ //g2
       t.is(d.value, ' d')
       t.is(e.value, ' e')
 
-      const [n] = obj.a[Symbol.for('after')]
+      const [n] = obj.a[Symbol.for('after-value:1')]
       t.is(n.value, ' n')
 
       const [m] = obj.a[Symbol.for('after-value:0')]

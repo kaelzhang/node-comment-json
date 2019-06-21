@@ -89,7 +89,7 @@ If the `content` is:
     // after-value:0
     , // before:1
     "quux"
-    // after
+    // after-value:1
   ] // after-value:bar
   // after-value:bar
 }

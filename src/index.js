@@ -3,5 +3,6 @@ const stringify = require('./stringify')
 
 module.exports = {
   parse,
-  stringify
+  stringify,
+  tokenize
 }

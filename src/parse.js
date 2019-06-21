@@ -58,6 +58,7 @@ const CURLY_BRACKET_CLOSE = '}'
 const COLON = ':'
 const COMMA = ','
 const EMPTY = ''
+const MINUS = '-'
 
 const symbolFor = prefix => Symbol.for(
   last_prop !== UNDEFINED
@@ -296,10 +297,10 @@ function walk () {
   let negative = EMPTY
 
   // -1
-  if (tt === '-') {
+  if (tt === MINUS) {
     next()
     tt = type()
-    negative = tt
+    negative = MINUS
   }
 
   let v
