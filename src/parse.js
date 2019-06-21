@@ -383,5 +383,6 @@ module.exports = {
   CURLY_BRACKET_CLOSE,
   COLON,
   COMMA,
-  EMPTY
+  EMPTY,
+  UNDEFINED
 }

@@ -16,7 +16,9 @@ const {
   CURLY_BRACKET_CLOSE,
   COLON,
   COMMA,
-  EMPTY
+  EMPTY,
+
+  UNDEFINED
 } = require('./parse')
 
 // eslint-disable-next-line no-control-regex
@@ -26,8 +28,6 @@ const ESCAPABLE = /[\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u
 const SPACE = ' '
 const LF = '\n'
 const STR_NULL = 'null'
-
-const RETURN_TRUE = () => true
 
 // Symbol tags
 const BEFORE = prop => `${PREFIX_BEFORE}:${prop}`
@@ -142,9 +142,17 @@ const array_stringify = (value, gap) => {
   // Never use Array.prototype.forEach,
   // that we should iterate all items
   for (let i = 0; i < length; i ++) {
-    inside += process_comments(value, BEFORE(i), deeper_gap, true)
+    const before = process_comments(value, BEFORE(i), deeper_gap, true)
+
+    inside += before
+    + (
+      before
+        ? EMPTY
+        : LF + deeper_gap
+    )
     + (
       stringify(i, value, deeper_gap)
+      // JSON.stringify([undefined])  => [null]
       || STR_NULL
     )
     + process_comments(value, AFTER_VALUE(i), deeper_gap)
@@ -175,59 +183,53 @@ const object_stringify = (value, gap) => {
   }
 
   const deeper_gap = gap + indent
-  // Between two key-value pairs except indent
-  const delimiter = LF + gap
 
   const colon_value_gap = indent
     ? SPACE
     : EMPTY
 
   // From the first element to before close
-  const inside = []
+  let inside = EMPTY
+  let first = true
 
-  // // Only process comments when indent is not EMPTY
-  // if (indent) {
-  //   str += process_comments(value, BEFORE, deeper_gap, true)
-  // }
+  const iteratee = key => {
+    // Stringified value
+    const sv = stringify(key, value, deeper_gap)
 
-  if (isArray(replacer)) {
-
-  }
-
-  const keys = Object.keys(value)
-  .filter(k => value[k] !== undefined)
-
-  const max = keys.length - 1
-
-  const has_key = isArray(replacer)
-    // replacer, as an array
-    ? key => replacer.includes(key)
-    : RETURN_TRUE
-
-  keys.forEach((k, i) => {
-    const has = has_key(k)
-
-    if (has) {
-      inside += quote(k)
-      + process_comments(value, AFTER_PROP(k), deeper_gap)
-      + COLON
-      + process_comments(value, AFTER_COLON(k), deeper_gap)
-      + colon_value_gap
-      + (
-        stringify(k, value, replacer, indent, deeper_gap)
-        || STR_NULL
-      )
-      + process_comments(value, AFTER_VALUE(k), deeper_gap)
+    if (sv === UNDEFINED) {
+      return
     }
 
-    inside += i === max
-      ? delimiter
-      : process_comments(value, AFTER_COMMA(k), deeper_gap)
-        + COMMA + delimiter + indent
-  })
+    if (!first) {
+      inside += COMMA
+    }
+
+    first = false
+
+    const before = process_comments(value, BEFORE(key), deeper_gap, true)
+    if (!before) {
+      inside += LF + deeper_gap
+    }
+
+    inside += quote(key)
+    + process_comments(value, AFTER_PROP(key), deeper_gap)
+    + COLON
+    + process_comments(value, AFTER_COLON(key), deeper_gap)
+    + colon_value_gap
+    + sv
+    + process_comments(value, AFTER_VALUE(key), deeper_gap)
+  }
+
+  const keys = isArray(replacer)
+    ? replacer
+    : Object.keys(value)
+
+  keys.forEach(iteratee)
+
+  inside += process_comments(value, PREFIX_AFTER, deeper_gap)
 
   return CURLY_BRACKET_OPEN
-  + join_content(inside, value, indent, gap)
+  + join_content(inside, value, gap)
   + CURLY_BRACKET_CLOSE
 }
 
