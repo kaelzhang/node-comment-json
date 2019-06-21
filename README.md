@@ -15,10 +15,10 @@
 
 # comment-json
 
-- [Parse] JSON strings with comments into JavaScript objects and MAINTAIN comments
+- [Parse](#parse) JSON strings with comments into JavaScript objects and MAINTAIN comments
   - supports comments everywhere, yes, **EVERYWHERE** in a JSON file, eventually 😆
   - fixes the known issue about comments inside arrays.
-- [Stringify] the objects into JSON strings with comments if there are
+- [Stringify](#stringify) the objects into JSON strings with comments if there are
 
 The usage of `comment-json` is exactly the same as the vanilla [`JSON`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON) object.
 

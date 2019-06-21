@@ -60,18 +60,18 @@ const each = (subjects, replacers, spaces, iterator) => {
   })
 }
 
-// each(SUBJECTS, REPLACERS, SPACES, (subject, replacer, space, desc) => {
-//   test(`stringify: ${desc}`, t => {
-//     const compare = [
-//       JSON.stringify(subject, replacer, space),
-//       stringify(subject, replacer, space)
-//     ]
+each(SUBJECTS, REPLACERS, SPACES, (subject, replacer, space, desc) => {
+  test(`stringify: ${desc}`, t => {
+    const compare = [
+      JSON.stringify(subject, replacer, space),
+      stringify(subject, replacer, space)
+    ]
 
-//     // console.log(compare)
+    // console.log(compare)
 
-//     t.is(...compare)
-//   })
-// })
+    t.is(...compare)
+  })
+})
 
 const OLD_CASES = [
   'deep',
