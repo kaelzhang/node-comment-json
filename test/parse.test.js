@@ -132,6 +132,7 @@ const cases = [
         1 /*m*/ , // d
         // e
         2
+        // n
       ] /*
 g*/ //g2
       //h
@@ -183,6 +184,9 @@ g*/ //g2
       const [d, e] = obj.a[Symbol.for('before:1')]
       t.is(d.value, ' d')
       t.is(e.value, ' e')
+
+      const [n] = obj.a[Symbol.for('after')]
+      t.is(n.value, ' n')
 
       const [m] = obj.a[Symbol.for('after-value:0')]
       t.is(m.value, 'm')

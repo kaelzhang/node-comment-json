@@ -51,6 +51,14 @@ const PREFIX_AFTER_COLON = 'after-colon'
 const PREFIX_AFTER_VALUE = 'after-value'
 const PREFIX_AFTER = 'after'
 
+const BRACKET_OPEN = '['
+const BRACKET_CLOSE = ']'
+const CURLY_BRACKET_OPEN = '{'
+const CURLY_BRACKET_CLOSE = '}'
+const COLON = ':'
+const COMMA = ','
+const EMPTY = ''
+
 const symbolFor = prefix => Symbol.for(
   last_prop !== UNDEFINED
     ? `${prefix}:${last_prop}`
@@ -182,15 +190,15 @@ const parse_object = () => {
   set_comments_host(obj)
   set_prop(UNDEFINED, true)
 
-  let started
+  let started = false
   let name
 
   parse_comments()
 
-  while (!is('}')) {
+  while (!is(CURLY_BRACKET_CLOSE)) {
     if (started) {
       // key-value pair delimiter
-      expect(',')
+      expect(COMMA)
       next()
       parse_comments()
     }
@@ -204,7 +212,7 @@ const parse_object = () => {
     next()
     parse_comments(PREFIX_AFTER_PROP)
 
-    expect(':')
+    expect(COLON)
 
     next()
     parse_comments(PREFIX_AFTER_COLON)
@@ -219,7 +227,11 @@ const parse_object = () => {
 
   // If there is no properties in the object,
   // try to save unassigned comments
-  assign_comments(PREFIX_BEFORE)
+  assign_comments(
+    started
+      ? PREFIX_AFTER
+      : PREFIX_BEFORE
+  )
 
   restore_comments_host()
   restore_prop()
@@ -232,14 +244,14 @@ const parse_array = () => {
   set_comments_host(array)
   set_prop(UNDEFINED, true)
 
-  let started
+  let started = false
   let i = 0
 
   parse_comments()
 
-  while (!is(']')) {
+  while (!is(BRACKET_CLOSE)) {
     if (started) {
-      expect(',')
+      expect(COMMA)
       next()
       parse_comments()
     }
@@ -256,7 +268,11 @@ const parse_array = () => {
   next()
   last_prop = undefined
 
-  assign_comments(PREFIX_BEFORE)
+  assign_comments(
+    started
+      ? PREFIX_AFTER
+      : PREFIX_BEFORE
+  )
 
   restore_comments_host()
   restore_prop()
@@ -267,23 +283,23 @@ const parse_array = () => {
 function walk () {
   let tt = type()
 
-  if (tt === '{') {
+  if (tt === CURLY_BRACKET_OPEN) {
     next()
     return parse_object()
   }
 
-  if (tt === '[') {
+  if (tt === BRACKET_OPEN) {
     next()
     return parse_array()
   }
 
-  let negative = ''
+  let negative = EMPTY
 
   // -1
   if (tt === '-') {
     next()
     tt = type()
-    negative = '-'
+    negative = tt
   }
 
   let v
@@ -353,5 +369,19 @@ const parse = (code, rev, no_comments) => {
 
 module.exports = {
   parse,
-  tokenize
+  tokenize,
+
+  PREFIX_BEFORE,
+  PREFIX_AFTER_PROP,
+  PREFIX_AFTER_COLON,
+  PREFIX_AFTER_VALUE,
+  PREFIX_AFTER,
+
+  BRACKET_OPEN,
+  BRACKET_CLOSE,
+  CURLY_BRACKET_OPEN,
+  CURLY_BRACKET_CLOSE,
+  COLON,
+  COMMA,
+  EMPTY
 }

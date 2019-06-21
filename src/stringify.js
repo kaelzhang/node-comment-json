@@ -3,36 +3,37 @@ const {
 } = require('core-util-is')
 const repeat = require('repeat-string')
 
-/////////////////////////////////////////////////////////////////
-// Modified from Douglas Crockford's JSON2:
-// https://github.com/douglascrockford/JSON-js
-/////////////////////////////////////////////////////////////////
+const {
+  PREFIX_BEFORE,
+  PREFIX_AFTER_PROP,
+  PREFIX_AFTER_COLON,
+  PREFIX_AFTER_VALUE,
+  PREFIX_AFTER,
+
+  BRACKET_OPEN,
+  BRACKET_CLOSE,
+  CURLY_BRACKET_OPEN,
+  CURLY_BRACKET_CLOSE,
+  COLON,
+  COMMA,
+  EMPTY
+} = require('./parse')
 
 // eslint-disable-next-line no-control-regex
 const ESCAPABLE = /[\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g
 
 // String constants
 const SPACE = ' '
-const EMPTY = ''
 const LF = '\n'
-const BRACKET_OPEN = '['
-const BRACKET_CLOSE = ']'
-const CURLY_BRACKET_OPEN = '{'
-const CURLY_BRACKET_CLOSE = '}'
-const COLON = ':'
-const COMMA = ','
 const STR_NULL = 'null'
 
 const RETURN_TRUE = () => true
 
 // Symbol tags
-const BEFORE_ALL = 'before-all'
-const BEFORE = 'before'
-const AFTER_PROP = prop => `after-prop:${prop}`
-const AFTER_COLON = prop => `after-colon:${prop}`
-const AFTER_VALUE = prop => `after-value:${prop}`
-const AFTER_COMMA = prop => `after-comma:${prop}`
-const AFTER_ALL = `after-all`
+const BEFORE = prop => `${PREFIX_BEFORE}:${prop}`
+const AFTER_PROP = prop => `${PREFIX_AFTER_PROP}:${prop}`
+const AFTER_COLON = prop => `${PREFIX_AFTER_COLON}:${prop}`
+const AFTER_VALUE = prop => `${PREFIX_AFTER_VALUE}:${prop}`
 
 // table of character substitutions
 const meta = {
@@ -67,7 +68,8 @@ const comment_stringify = (value, line) => line
   ? `//${value}`
   : `/*${value}*/`
 
-// display_block `boolean` whether the comment is always a block text
+// display_block `boolean` whether the
+//   WHOLE block of comments is always a block group
 const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
   const comments = host[Symbol.for(symbol_tag)]
   if (!comments || !comments.length) {
@@ -107,19 +109,19 @@ const clean = () => {
 }
 
 const join_content = (inside, value, gap) => {
-  const comment = process_comments(value, BEFORE, indent + gap, true)
-  return comment || inside
-    // comment(c), inside(i), gap(g), indent(ii):
-    // -  c,  i : c + LF + g + ii + i
-    // - !c,  i : LF + g + ii + i     => c + LF + g + ii + i
-    // -  c, !i : c + LF + g
-    // - !c, !i : EMPTY
-    ? comment + LF + gap + (
-      inside
-        ? indent + inside
-        : EMPTY
-    )
-    : EMPTY
+  const comment = process_comments(value, PREFIX_BEFORE, gap + indent, true)
+
+  return comment
+    ? inside
+      // Symbol.for('before') and Symbol.for('before:prop')
+      // might both exist if user mannually add comments to the object
+      // and make a mistake.
+      // We trim to make sure the layout
+      ? comment + inside.trim() + LF + gap
+      : comment.trimRight() + LF + gap
+    : inside
+      ? inside.trimRight() + LF + gap
+      : EMPTY
 }
 
 // | deeper_gap   |
@@ -130,29 +132,29 @@ const join_content = (inside, value, gap) => {
 //       ]
 const array_stringify = (value, gap) => {
   const deeper_gap = gap + indent
-  // Between two items except indent
-  const delimiter = LF + gap
 
   const {length} = value
   const max = length - 1
 
-  // From the first element to before close
+  // From the item to before close
   let inside = EMPTY
 
   // Never use Array.prototype.forEach,
   // that we should iterate all items
   for (let i = 0; i < length; i ++) {
-    inside += (
+    inside += process_comments(value, BEFORE(i), deeper_gap, true)
+    + (
       stringify(i, value, deeper_gap)
       || STR_NULL
     )
     + process_comments(value, AFTER_VALUE(i), deeper_gap)
 
-    inside += i === max
-      ? delimiter
-      : process_comments(value, AFTER_COMMA(i), deeper_gap)
-        + COMMA + delimiter + indent
+    if (i === max) {
+      inside += COMMA
+    }
   }
+
+  inside += process_comments(value, PREFIX_AFTER, deeper_gap)
 
   return BRACKET_OPEN
    + join_content(inside, value, gap)
@@ -317,8 +319,8 @@ module.exports = (value, replacer_, space) => {
   clean()
 
   return isObject(value)
-    ? process_comments(value, BEFORE_ALL, EMPTY).trimLeft()
+    ? process_comments(value, PREFIX_BEFORE, EMPTY).trimLeft()
       + str
-      + process_comments(value, AFTER_ALL, EMPTY)
+      + process_comments(value, PREFIX_AFTER, EMPTY)
     : str
 }

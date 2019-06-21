@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "core-util-is": "^1.0.2",
+    "esprima": "^4.0.1",
     "json-parser": "^2.1.2",
     "repeat-string": "^1.6.1",
     "test-fixture": "^2.4.0"

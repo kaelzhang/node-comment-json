@@ -106,13 +106,13 @@ And the result will be:
 ```js
 {
   // Comments before the JSON object
-  [Symbol.for('before-all')]: [{
+  [Symbol.for('before')]: [{
     type: 'BlockComment',
-    value: '\n before-all\n ',
+    value: '\n before\n ',
     inline: false
   }, {
     type: 'LineComment',
-    value: ' before-all',
+    value: ' before',
     inline: false
   }],
   ...
@@ -167,6 +167,9 @@ Symbol.for(`after-colon:${prop}`)
 Symbol.for(`after-value:${prop}`)
 
 // comment tokens after everything
+// - or if comments after
+//   - the last key-value:pair of an object
+//   - the last item of an array
 Symbol.for('after')
 ```
 
