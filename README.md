@@ -32,6 +32,12 @@ Imagine that if the user settings are saved in `${library}.json`， and the user
 
 So, **if you want to parse a JSON string with comments, modify it, then save it back**, `comment-json` is your must choice!
 
+## How?
+
+`comment-json` parse JSON strings with comments and save comment tokens into [symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) properties.
+
+For JSON array with comments, `comment-json` extends the vanilla `Array` object into [`CommentArray`](#commentarray) whose instances could handle comments changes even after a comment array is modified.
+
 ## Install
 
 ```sh
@@ -335,6 +341,80 @@ stringify(obj, null, 2)
 //   "bar": "baz",
 //   // This is a comment
 //   "foo": "bar"
+// }
+```
+
+## `CommentArray`
+
+> Advanced Section
+
+All arrays of the parsed object are `CommentArray`s.
+
+The constructor of `CommentArray` could be accessed by:
+
+```js
+const {CommentArray} = require('comment-json')
+```
+
+If we modify a comment array, its comment symbol properties could be handled automatically.
+
+```js
+const parsed = parse(`{
+  "foo": [
+    // bar
+    "bar",
+    // baz,
+    "baz"
+  ]
+}`)
+
+parsed.foo.unshift('qux')
+
+stringify(parsed, null, 2)
+// {
+//   "foo": [
+//     "qux",
+//     // bar
+//     "bar",
+//     // baz
+//     "baz"
+//   ]
+// }
+```
+
+Oh yeah! 😆
+
+But pay attention, if you reassign the property of a comment array with a normal array, all comments will be gone:
+
+```js
+parsed.foo = ['quux'].concat(parsed.foo)
+stringify(parsed, null, 2)
+// {
+//   "foo": [
+//     "quux",
+//     "qux",
+//     "bar",
+//     "baz"
+//   ]
+// }
+
+// Whoooops!! 😩 Comments are gone
+```
+
+Instead, we should:
+
+```js
+parsed.foo = new CommentArray('quux').concat(parsed.foo)
+stringify(parsed, null, 2)
+// {
+//   "foo": [
+//     "quux",
+//     "qux",
+//     // bar
+//     "bar",
+//     // baz
+//     "baz"
+//   ]
 // }
 ```
 

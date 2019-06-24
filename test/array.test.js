@@ -2,7 +2,9 @@ const test = require('ava')
 const {
   isFunction, isObject, isString, isArray
 } = require('core-util-is')
-const {parse, stringify, assign} = require('../src')
+const {
+  parse, stringify, assign, CommentArray
+} = require('../src')
 
 const st = o => stringify(o, null, 2)
 
@@ -216,4 +218,29 @@ test('assign', t => {
 
   t.throws(() => assign({}, parsed, false), /keys/)
   t.throws(() => assign(), /convert/)
+})
+
+test('concat', t => {
+  const parsed = parse(`[
+  // bar
+  "bar",
+  // baz,
+  "baz"
+]`)
+
+  const concated = new CommentArray('quux').concat(
+    'qux',
+    parsed
+  )
+
+  t.is(stringify(concated, null, 2), `[
+  "quux",
+  "qux",
+  // bar
+  "bar",
+  // baz,
+  "baz"
+]`)
+
+  t.is(stringify(new CommentArray().concat()), '[]')
 })

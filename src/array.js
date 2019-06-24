@@ -251,6 +251,30 @@ class CommentArray extends Array {
 
     return ret
   }
+
+  concat (...items) {
+    let {length} = this
+    const ret = super.concat(...items)
+
+    if (!items.length) {
+      return ret
+    }
+
+    items.forEach(item => {
+      const prev = length
+      length += isArray(item)
+        ? item.length
+        : 1
+
+      if (!(item instanceof CommentArray)) {
+        return
+      }
+
+      move_comments(ret, item, 0, item.length, prev)
+    })
+
+    return ret
+  }
 }
 
 module.exports = {
