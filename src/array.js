@@ -131,18 +131,28 @@ const move_comments = (
 
 class CommentArray extends Array {
   // - deleteCount + items.length
-  splice (begin, deleteCount, ...items) {
+
+  // We should avoid `splice(begin, deleteCount, ...items)`,
+  // because `splice(0, undefined)` is not equivalent to `splice(0)`
+  splice (...args) {
     const {length} = this
+    const ret = super.splice(...args)
 
-    const ret = super.splice(begin, deleteCount, ...items)
-
-    // > If deleteCount is 0 or negative, no elements are removed.
-    // > In this case, you should specify at least one new element (see below).
-    if (deleteCount <= 0) {
+    // If no element removed, just skip moving comments.
+    // This is also used as argument type checking
+    if (!ret.length) {
       return ret
     }
 
-    if (deleteCount === UNDEFINED) {
+    // JavaScript syntax is silly
+    // eslint-disable-next-line prefer-const
+    let [begin, deleteCount, ...items] = args
+
+    if (begin < 0) {
+      begin += length
+    }
+
+    if (arguments.length === 1) {
       deleteCount = length - begin
     } else {
       deleteCount = Math.min(length - begin, deleteCount)
