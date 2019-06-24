@@ -133,7 +133,9 @@ class CommentArray extends Array {
   // - deleteCount + items.length
 
   // We should avoid `splice(begin, deleteCount, ...items)`,
-  // because `splice(0, undefined)` is not equivalent to `splice(0)`
+  // because `splice(0, undefined)` is not equivalent to `splice(0)`,
+  // as well as:
+  // - slice
   splice (...args) {
     const {length} = this
     const ret = super.splice(...args)
@@ -177,30 +179,43 @@ class CommentArray extends Array {
     return ret
   }
 
-  slice (begin, before) {
-    const array = new CommentArray(...super.slice(begin, before))
-    if (begin < 0 && before === UNDEFINED) {
+  slice (...args) {
+    const {length} = this
+    const array = super.slice(...args)
+    if (!array.length) {
       return new CommentArray()
     }
 
-    if (before === UNDEFINED) {
-      before = this.length
+    let [begin, before] = args
 
-      if (begin < 0) {
-        begin += before
-      }
+    // Ref:
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
+    if (before === UNDEFINED) {
+      before = length
+    } else if (before < 0) {
+      before += length
     }
 
-    move_comments(array, this, begin, before - begin, begin)
+    if (begin < 0) {
+      begin += length
+    } else if (begin === UNDEFINED) {
+      begin = 0
+    }
+
+    move_comments(array, this, begin, before - begin, - begin)
+
     return array
   }
 
   unshift (...items) {
+    const {length} = this
     const ret = super.unshift(...items)
-    const {length} = items
+    const {
+      length: items_length
+    } = items
 
-    if (length > 0) {
-      move_comments(this, this, length, this.length, length, true)
+    if (items_length > 0) {
+      move_comments(this, this, 0, length, items_length, true)
     }
 
     return ret
@@ -210,7 +225,7 @@ class CommentArray extends Array {
     const ret = super.shift()
     const {length} = this
 
-    move_comments(this, this, 1, length - 1, - 1, true)
+    move_comments(this, this, 1, length, - 1, true)
 
     return ret
   }
