@@ -54,7 +54,8 @@ package.json:
 ```js
 const {
   parse,
-  stringify
+  stringify,
+  assign
 } = require('comment-json')
 const fs = require('fs')
 
@@ -309,6 +310,32 @@ For the case above:
 ```js
 console.log(stringify(result)) // {"a":1}
 console.log(stringify(result, null, 2)) // is the same as `code`
+```
+
+## assign(target: object, source?: object, keys?: Array<string>)
+
+- **target** `object` the target object
+- **source?** `object` the source object. This parameter is optional but it is silly to not pass this argument.
+- **keys?** `Array<string>` If not specified, all enumerable own properties of `source` will be used.
+
+This method is used to copy the enumerable own properties and their corresponding comment symbol properties to the target object.
+
+```js
+const parsed = parse(`{
+  // This is a comment
+  "foo": "bar"
+}`)
+
+const obj = assign({
+  bar: 'baz'
+}, parsed)
+
+stringify(obj, null, 2)
+// {
+//   "bar": "baz",
+//   // This is a comment
+//   "foo": "bar"
+// }
 ```
 
 ## License
