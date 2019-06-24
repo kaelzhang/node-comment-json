@@ -2,7 +2,9 @@ const test = require('ava')
 const {
   isFunction, isObject, isString, isArray
 } = require('core-util-is')
-const {parse, stringify} = require('../src')
+const {parse, stringify, assign} = require('../src')
+
+const st = o => stringify(o, null, 2)
 
 const a1 = `[
   // 0
@@ -20,6 +22,11 @@ const a2 = `[
   2
 ]`
 
+const a3 = `[
+  // 0
+  0
+]`
+
 // ret: return value to expect
 const texpect = (t, ret, str, r, rr) => {
   if (isObject(ret)) {
@@ -31,7 +38,7 @@ const texpect = (t, ret, str, r, rr) => {
   if (isString(rr)) {
     t.is(rr, str)
   } else {
-    t.is(stringify(rr, null, 2), str)
+    t.is(st(rr), str)
   }
 }
 
@@ -102,10 +109,13 @@ const CASES = [
     'slice(0, - 2)',
     a1,
     array => array.slice(0, - 2),
-    slice([0], `[
-  // 0
-  0
-]`)
+    slice([0], a3)
+  ],
+  [
+    'slice(0, 1)',
+    a1,
+    array => array.slice(0, 1),
+    slice([0], a3)
   ],
   [
     'unshift()',
@@ -138,19 +148,30 @@ const CASES = [
   2
 ]`)
   ],
-//   [
-//     'reverse',
-//     a1,
-//     array => array.reverse(),
-//     unshift([2, 1, 0], `[
-//   // 2
-//   2,
-//   // 1
-//   1,
-//   // 0
-//   0
-// ]`)
-//   ]
+  [
+    'reverse',
+    a1,
+    array => array.reverse(),
+    unshift([2, 1, 0], `[
+  // 2
+  2,
+  // 1
+  1,
+  // 0
+  0
+]`)
+  ],
+  [
+    'pop',
+    a1,
+    array => array.pop(),
+    unshift(2, `[
+  // 0
+  0,
+  // 1
+  1
+]`)
+  ]
 ]
 
 CASES.forEach(([d, a, run, e, s]) => {
@@ -171,6 +192,28 @@ CASES.forEach(([d, a, run, e, s]) => {
         // clean ret
         ? [...ret]
         : ret,
-      stringify(parsed, null, 2), parsed, ret)
+      st(parsed), parsed, ret)
   })
+})
+
+test('assign', t => {
+  const str = `{
+  // a
+  "a": 1,
+  // b
+  "b": 2
+}`
+
+  const parsed = parse(str)
+
+  t.is(st(assign({}, parsed)), str)
+  t.is(st(assign({})), '{}')
+
+  t.is(st(assign({}, parsed, ['a', 'c'])), `{
+  // a
+  "a": 1
+}`)
+
+  t.throws(() => assign({}, parsed, false), /keys/)
+  t.throws(() => assign(), /convert/)
 })

@@ -1,4 +1,5 @@
 const hasOwnProperty = require('has-own-prop')
+const {isObject, isArray} = require('core-util-is')
 
 const PREFIX_BEFORE = 'before'
 const PREFIX_AFTER_PROP = 'after-prop'
@@ -60,12 +61,12 @@ const swap_comments = (array, from, to) => {
   SYMBOL_PREFIXES.forEach(prefix => {
     const target_prop = symbol(prefix, to)
     if (!hasOwnProperty(array, target_prop)) {
-      assign_comments(array, array, from, to, prefix)
+      assign_comments(array, array, to, from, prefix)
       return
     }
 
     const comments = array[target_prop]
-    assign_comments(array, array, from, to, prefix)
+    assign_comments(array, array, to, from, prefix)
     array[symbol(prefix, from)] = comments
   })
 }
@@ -254,7 +255,23 @@ class CommentArray extends Array {
 
 module.exports = {
   CommentArray,
-  assign,
+  assign (target, source, keys) {
+    if (!isObject(target)) {
+      throw new TypeError('Cannot convert undefined or null to object')
+    }
+
+    if (!isObject(source)) {
+      return target
+    }
+
+    if (keys === UNDEFINED) {
+      keys = Object.keys(source)
+    } else if (!isArray(keys)) {
+      throw new TypeError('keys must be array or undefined')
+    }
+
+    return assign(target, source, keys)
+  },
 
   PREFIX_BEFORE,
   PREFIX_AFTER_PROP,
