@@ -96,6 +96,7 @@ const unexpected_end = () => {
   throw error
 }
 
+// Move the reader to the next
 const next = () => {
   const new_token = tokens[++ index]
   inline = current
@@ -208,6 +209,10 @@ const parse_object = () => {
       expect(COMMA)
       next()
       parse_comments()
+
+      if (is(CURLY_BRACKET_CLOSE)) {
+        break
+      }
     }
 
     started = true
@@ -261,6 +266,10 @@ const parse_array = () => {
       expect(COMMA)
       next()
       parse_comments()
+
+      if (is(BRACKET_CLOSE)) {
+        break
+      }
     }
 
     started = true
@@ -326,6 +335,7 @@ function walk () {
 const isObject = subject => Object(subject) === subject
 
 const parse = (code, rev, no_comments) => {
+  // Clean variables in closure
   clean()
 
   tokens = tokenize(code)

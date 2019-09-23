@@ -8,6 +8,28 @@ const parser = require('../src')
 
 const cases = [
   {
+    d: '#8: object with trailing comma',
+    s: `//top
+{
+  "foo": "bar", // after
+}`,
+    o: '{"foo":"bar"}',
+    e (t, obj) {
+      t.is(obj.foo, 'bar')
+      t.is(obj[Symbol.for('after')][0].value, ' after')
+    }
+  },
+  {
+    d: '#8: array with trailing comma',
+    s: `//top
+[1,]`,
+    o: '[1]',
+    e (t, obj) {
+      t.is(Number(obj[0]), 1)
+      t.is(obj[Symbol.for('before-all')][0].value, 'top')
+    }
+  },
+  {
     d: 'comment at the top',
     s: '//top\n{"a":1}',
     o: '{"a":1}',
