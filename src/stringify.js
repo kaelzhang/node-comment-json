@@ -50,6 +50,7 @@ const meta = {
 
 const escape = string => {
   ESCAPABLE.lastIndex = 0
+
   if (!ESCAPABLE.test(string)) {
     return string
   }
