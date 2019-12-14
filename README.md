@@ -131,18 +131,32 @@ And the result will be:
   [Symbol.for('before-all')]: [{
     type: 'BlockComment',
     value: '\n before-all\n ',
-    inline: false
+    inline: false,
+    loc: {
+      // The start location of `/**`
+      start: {
+        line: 1,
+        column: 0
+      },
+      // The end location of `*/`
+      end: {
+        line: 3,
+        column: 3
+      }
+    }
   }, {
     type: 'LineComment',
     value: ' before-all',
-    inline: false
+    inline: false,
+    loc: ...
   }],
   ...
 
   [Symbol.for('after-prop:foo')]: [{
     type: 'BlockComment',
     value: ' after-prop:foo ',
-    inline: true
+    inline: true,
+    loc: ...
   }],
 
   // The real value
@@ -155,7 +169,8 @@ And the result will be:
     [Symbol.for('after-value:0')]: [{
       type: 'LineComment',
       value: ' after-value:0',
-      inline: true
+      inline: true,
+    loc: ...
     }, ...],
     ...
   ]
@@ -268,7 +283,8 @@ const parsed = new Number(1)
 parsed[Symbol.for('before-all')] = [{
   type: 'LineComment',
   value: ' comment',
-  inline: false
+  inline: false,
+  loc: ...
 }]
 ```
 
@@ -293,7 +309,8 @@ const parsed = new String('foo')
 parsed[Symbol.for('after-all')] = [{
   type: 'BlockComment',
   value: ' comment ',
-  inline: true
+  inline: true,
+  loc: ...
 }]
 ```
 
