@@ -173,20 +173,51 @@ g*/ //g2
       t.is(obj.a[1], 2)
 
       const [g, g2, h] = obj[Symbol.for('after-value:a')]
+
       t.deepEqual(g, {
         type: 'BlockComment',
         value: '\ng',
-        inline: true
+        inline: true,
+        loc: {
+          start: {
+            line: 8,
+            column: 8
+          },
+          end: {
+            line: 9,
+            column: 3
+          }
+        }
       })
       t.deepEqual(g2, {
         type: 'LineComment',
         value: 'g2',
-        inline: true
+        inline: true,
+        loc: {
+          start: {
+            line: 9,
+            column: 4
+          },
+          end: {
+            line: 9,
+            column: 8
+          }
+        }
       })
       t.deepEqual(h, {
         type: 'LineComment',
         value: 'h',
-        inline: false
+        inline: false,
+        loc: {
+          start: {
+            line: 10,
+            column: 6
+          },
+          end: {
+            line: 10,
+            column: 9
+          }
+        },
       })
 
       const [i, j] = obj[Symbol.for('after-prop:b')]

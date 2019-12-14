@@ -159,7 +159,7 @@ const parse_comments = prefix => {
       inline
     }
 
-    delete comment.loc
+    // delete comment.loc
     comments.push(comment)
 
     next()
