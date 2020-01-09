@@ -1,11 +1,14 @@
 {
   "name": "comment-json",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "description": "Parse and stringify JSON with comments. It will retain comments even after saved!",
   "main": "src/index.js",
   "scripts": {
-    "test": "NODE_DEBUG=comment-json nyc ava --timeout=10s --verbose",
-    "test:dev": "NODE_DEBUG=comment-json nyc ava --timeout=10s --verbose && npm run report:dev",
+    "test": "npm run test:only",
+    "test:only": "npm run test:ts && npm run test:node",
+    "test:ts": "tsc test/ts/test-ts.ts && node test/ts/test-ts.js",
+    "test:node": "NODE_DEBUG=comment-json nyc ava --timeout=10s --verbose",
+    "test:dev": "npm run test:only && npm run report:dev",
     "lint": "eslint .",
     "fix": "eslint . --fix",
     "posttest": "npm run report",
@@ -14,7 +17,8 @@
     "report:open": "open coverage/index.html"
   },
   "files": [
-    "src/"
+    "src/",
+    "index.d.ts"
   ],
   "repository": {
     "type": "git",
@@ -52,7 +56,8 @@
     "eslint": "^6.6.0",
     "eslint-plugin-import": "^2.18.2",
     "nyc": "^14.1.1",
-    "test-fixture": "^2.4.1"
+    "test-fixture": "^2.4.1",
+    "typescript": "^3.7.4"
   },
   "dependencies": {
     "core-util-is": "^1.0.2",

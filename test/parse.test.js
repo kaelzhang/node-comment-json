@@ -1,6 +1,6 @@
 const test = require('ava')
 
-const parser = require('../src')
+const parser = require('..')
 
 // var a = parser.parse('//top\n{// top a\n/* abc */"a":1,//right\n/* bcd */"b":{"a":1}}//bottom');
 // // var a = parser.parse('{/*top*/"a":1,//right\n/*abc*/"b":{"a":1}}');

@@ -4,6 +4,7 @@
 /coverage.lcov
 /package-lock.json
 /*.tgz
+/test/ts/*.js
 
 
 # Numerous always-ignore extensions

@@ -2,7 +2,7 @@ const test = require('ava')
 const {resolve} = require('test-fixture')()
 const fs = require('fs')
 const {isFunction, isString} = require('core-util-is')
-const {parse, stringify} = require('../src')
+const {parse, stringify} = require('..')
 
 const SUBJECTS = [
   'abc',

@@ -4,7 +4,7 @@ const {
 } = require('core-util-is')
 const {
   parse, stringify, assign, CommentArray
-} = require('../src')
+} = require('..')
 
 const st = o => stringify(o, null, 2)
 
