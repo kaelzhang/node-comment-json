@@ -78,7 +78,7 @@ const CASES = [
     a2
   ],
   [
-    'splice(1, 0, 3)',
+    '#16: splice(1, 0, 3)',
     a1,
     array => array.splice(1, 0, 3),
     [],
