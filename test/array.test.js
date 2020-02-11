@@ -52,10 +52,15 @@ const unshift = (ret, str) =>
 
 const CASES = [
   [
+    // title
     'splice(0, 1)',
+    // input array
     a1,
+    // run
     array => array.splice(0, 1),
+    // expect function or expected value of the result array
     [0],
+    // expected stringified string
     a2
   ],
   [
@@ -71,6 +76,21 @@ const CASES = [
     array => array.splice(- 3, 1),
     [0],
     a2
+  ],
+  [
+    'splice(1, 0, 3)',
+    a1,
+    array => array.splice(1, 0, 3),
+    [],
+    `[
+  // 0
+  0,
+  3,
+  // 1
+  1,
+  // 2
+  2
+]`
   ],
   [
     'invalid: splice(0, undefined)',

@@ -141,11 +141,13 @@ class CommentArray extends Array {
     const {length} = this
     const ret = super.splice(...args)
 
-    // If no element removed, just skip moving comments.
-    // This is also used as argument type checking
-    if (!ret.length) {
-      return ret
-    }
+    // #16
+    // If no element removed, we might still need to move comments,
+    //   because splice could add new items
+
+    // if (!ret.length) {
+    //   return ret
+    // }
 
     // JavaScript syntax is silly
     // eslint-disable-next-line prefer-const
