@@ -9,6 +9,7 @@ const {
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
   PREFIX_AFTER_VALUE,
+  PREFIX_AFTER_COMMA,
   PREFIX_AFTER,
   PREFIX_AFTER_ALL,
 
@@ -36,6 +37,7 @@ const BEFORE = prop => `${PREFIX_BEFORE}:${prop}`
 const AFTER_PROP = prop => `${PREFIX_AFTER_PROP}:${prop}`
 const AFTER_COLON = prop => `${PREFIX_AFTER_COLON}:${prop}`
 const AFTER_VALUE = prop => `${PREFIX_AFTER_VALUE}:${prop}`
+const AFTER_COMMA = prop => `${PREFIX_AFTER_COMMA}:${prop}`
 
 // table of character substitutions
 const meta = {
@@ -111,20 +113,23 @@ const clean = () => {
   indent = EMPTY
 }
 
-const join_content = (inside, value, gap) => {
-  const comment = process_comments(value, PREFIX_BEFORE, gap + indent, true)
-
-  return comment
-    ? inside
+const join = (one, two, gap) =>
+  one
+    ? two
       // Symbol.for('before') and Symbol.for('before:prop')
       // might both exist if user mannually add comments to the object
       // and make a mistake.
-      // We trim to make sure the layout
-      ? comment + inside.trim() + LF + gap
-      : comment.trimRight() + LF + gap
-    : inside
-      ? inside.trimRight() + LF + gap
+      // SO, we are not to only trimRight but trim for both sides
+      ? one + two.trim() + LF + gap
+      : one.trimRight() + LF + gap
+    : two
+      ? two.trimRight() + LF + gap
       : EMPTY
+
+const join_content = (inside, value, gap) => {
+  const comment = process_comments(value, PREFIX_BEFORE, gap + indent, true)
+
+  return join(comment, inside, gap)
 }
 
 // | deeper_gap   |
@@ -140,15 +145,20 @@ const array_stringify = (value, gap) => {
 
   // From the item to before close
   let inside = EMPTY
+  let after_comma = EMPTY
 
   // Never use Array.prototype.forEach,
   // that we should iterate all items
   for (let i = 0; i < length; i ++) {
-    const before = process_comments(value, BEFORE(i), deeper_gap, true)
-
     if (i !== 0) {
       inside += COMMA
     }
+
+    const before = join(
+      after_comma,
+      process_comments(value, BEFORE(i), deeper_gap),
+      deeper_gap
+    )
 
     inside += before || (LF + deeper_gap)
 
@@ -156,9 +166,15 @@ const array_stringify = (value, gap) => {
     inside += stringify(i, value, deeper_gap) || STR_NULL
 
     inside += process_comments(value, AFTER_VALUE(i), deeper_gap)
+
+    after_comma = process_comments(value, AFTER_COMMA(i), deeper_gap)
   }
 
-  inside += process_comments(value, PREFIX_AFTER, deeper_gap)
+  inside += join(
+    after_comma,
+    process_comments(value, PREFIX_AFTER, deeper_gap),
+    deeper_gap
+  )
 
   return BRACKET_OPEN
    + join_content(inside, value, gap)
@@ -186,7 +202,12 @@ const object_stringify = (value, gap) => {
 
   // From the first element to before close
   let inside = EMPTY
+  let after_comma = EMPTY
   let first = true
+
+  const keys = isArray(replacer)
+    ? replacer
+    : Object.keys(value)
 
   const iteratee = key => {
     // Stringified value
@@ -197,13 +218,18 @@ const object_stringify = (value, gap) => {
       return
     }
 
+    // The treat ment
     if (!first) {
       inside += COMMA
     }
 
     first = false
 
-    const before = process_comments(value, BEFORE(key), deeper_gap, true)
+    const before = join(
+      after_comma,
+      process_comments(value, BEFORE(key), deeper_gap),
+      deeper_gap
+    )
 
     inside += before || (LF + deeper_gap)
 
@@ -214,15 +240,21 @@ const object_stringify = (value, gap) => {
     + colon_value_gap
     + sv
     + process_comments(value, AFTER_VALUE(key), deeper_gap)
-  }
 
-  const keys = isArray(replacer)
-    ? replacer
-    : Object.keys(value)
+    after_comma = process_comments(value, AFTER_COMMA(key), deeper_gap)
+  }
 
   keys.forEach(iteratee)
 
-  inside += process_comments(value, PREFIX_AFTER, deeper_gap)
+  // if (after_comma) {
+  //   inside += COMMA
+  // }
+
+  inside += join(
+    after_comma,
+    process_comments(value, PREFIX_AFTER, deeper_gap),
+    deeper_gap
+  )
 
   return CURLY_BRACKET_OPEN
   + join_content(inside, value, gap)

@@ -9,6 +9,7 @@ const {
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
   PREFIX_AFTER_VALUE,
+  PREFIX_AFTER_COMMA,
   COLON,
   UNDEFINED
 } = require('./array')
@@ -135,6 +136,38 @@ const restore_comments_host = () => {
   comments_host = previous_hosts.pop()
 }
 
+const assign_after_comma_comments = () => {
+  if (!unassigned_comments) {
+    return
+  }
+
+  const after_comma_comments = []
+
+  for (const comment of unassigned_comments) {
+    // If the comment is inline, then it is an after-comma comment
+    if (comment.inline) {
+      after_comma_comments.push(comment)
+    // Otherwise, all comments are before:<next-prop> comment
+    } else {
+      break
+    }
+  }
+
+  const {length} = after_comma_comments
+  if (!length) {
+    return
+  }
+
+  if (length === unassigned_comments.length) {
+    // If unassigned_comments are all consumed
+    unassigned_comments = null
+  } else {
+    unassigned_comments.splice(0, length)
+  }
+
+  comments_host[symbolFor(PREFIX_AFTER_COMMA)] = after_comma_comments
+}
+
 const assign_comments = prefix => {
   if (!unassigned_comments) {
     return
@@ -210,6 +243,14 @@ const parse_object = () => {
       next()
       parse_comments()
 
+      assign_after_comma_comments()
+
+      // If there is a trailing comma, we might reach the end
+      // ```
+      // {
+      //   "a": 1,
+      // }
+      // ```
       if (is(CURLY_BRACKET_CLOSE)) {
         break
       }
@@ -218,6 +259,7 @@ const parse_object = () => {
     started = true
     expect('String')
     name = JSON.parse(current.value)
+
     set_prop(name)
     assign_comments(PREFIX_BEFORE)
 
@@ -267,12 +309,15 @@ const parse_array = () => {
       next()
       parse_comments()
 
+      assign_after_comma_comments()
+
       if (is(BRACKET_CLOSE)) {
         break
       }
     }
 
     started = true
+
     set_prop(i)
     assign_comments(PREFIX_BEFORE)
 
@@ -393,6 +438,7 @@ module.exports = {
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
   PREFIX_AFTER_VALUE,
+  PREFIX_AFTER_COMMA,
   PREFIX_AFTER,
   PREFIX_AFTER_ALL,
 

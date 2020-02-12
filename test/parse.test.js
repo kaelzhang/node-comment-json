@@ -8,10 +8,25 @@ const parser = require('..')
 
 const cases = [
   {
+    d: '#17: after-comma comment, with trailing comma',
+    s: `//top
+{
+  "foo": "bar", // after comma foo
+  "bar": "baz", // after comma bar
+}`,
+    o: '{"foo":"bar","bar":"baz"}',
+    e (t, obj) {
+      t.is(obj.foo, 'bar')
+      t.is(obj[Symbol.for('after-comma:foo')][0].value, ' after comma foo')
+      t.is(obj[Symbol.for('after-comma:bar')][0].value, ' after comma bar')
+    }
+  },
+  {
     d: '#8: object with trailing comma',
     s: `//top
 {
-  "foo": "bar", // after
+  "foo": "bar",
+  // after
 }`,
     o: '{"foo":"bar"}',
     e (t, obj) {
@@ -139,7 +154,7 @@ const cases = [
     e (t, obj) {
       t.is(obj.a, 1)
       t.is(obj.b, 2)
-      const [c] = obj[Symbol.for('before:b')]
+      const [c] = obj[Symbol.for('after-comma:a')]
       t.is(c.value, ' a')
       t.is(c.inline, true)
     }
@@ -232,8 +247,10 @@ g*/ //g2
       t.is(b.value, ' b')
       t.is(c.value, 'c')
 
-      const [d, e] = obj.a[Symbol.for('before:1')]
+      const [d] = obj.a[Symbol.for('after-comma:0')]
       t.is(d.value, ' d')
+
+      const [e] = obj.a[Symbol.for('before:1')]
       t.is(e.value, ' e')
 
       const [n] = obj.a[Symbol.for('after-value:1')]

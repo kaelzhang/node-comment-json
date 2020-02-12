@@ -5,12 +5,14 @@ const PREFIX_BEFORE = 'before'
 const PREFIX_AFTER_PROP = 'after-prop'
 const PREFIX_AFTER_COLON = 'after-colon'
 const PREFIX_AFTER_VALUE = 'after-value'
+const PREFIX_AFTER_COMMA = 'after-comma'
 
 const SYMBOL_PREFIXES = [
   PREFIX_BEFORE,
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
-  PREFIX_AFTER_VALUE
+  PREFIX_AFTER_VALUE,
+  PREFIX_AFTER_COMMA
 ]
 
 const COLON = ':'
@@ -303,6 +305,7 @@ module.exports = {
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
   PREFIX_AFTER_VALUE,
+  PREFIX_AFTER_COMMA,
 
   COLON,
   UNDEFINED
