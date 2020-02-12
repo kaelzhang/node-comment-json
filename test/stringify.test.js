@@ -2,7 +2,7 @@ const test = require('ava')
 const {resolve} = require('test-fixture')()
 const fs = require('fs')
 const {isFunction, isString} = require('core-util-is')
-const {parse, stringify} = require('..')
+const {parse, stringify, assign} = require('..')
 
 const SUBJECTS = [
   'abc',
@@ -83,8 +83,6 @@ each(SUBJECTS, REPLACERS, SPACES, (subject, replacer, space, desc, i) => {
       stringify(subject, replacer, space)
     ]
 
-    // console.log(compare)
-
     t.is(...compare)
   })
 })
@@ -109,9 +107,10 @@ OLD_CASES.forEach(name => {
       ? space.length
       : space
 
-    test(`${name}, space: ${s} (${space})`, t => {
-      const file = resolve(`${name}-null-${s}.json`)
+    const filename = resolve(`${name}-null-${s}.json`)
 
+    test(`${name}, space: ${s} (${space}): ${filename}`, t => {
+      const file = resolve(filename)
       const content = fs.readFileSync(file).toString().trim()
       const parsed = parse(content)
       const str = stringify(parsed, null, space)
@@ -119,4 +118,32 @@ OLD_CASES.forEach(name => {
       t.is(str, content)
     })
   })
+})
+
+test('#17: has trailing comma and comment after comma', t => {
+  const str = `{
+  "a": 1, // a
+}`
+
+  t.is(stringify(parse(str), null, 2), `{
+  "a": 1 // a
+}`)
+})
+
+test('#17: insert key between a and b', t => {
+  const str = `{
+  "a": 1, // a
+  "b": 2, // b
+}`
+  const parsed = parse(str)
+  const obj = {}
+  assign(obj, parsed, ['a'])
+  obj.c = 3
+  assign(obj, parsed, ['b'])
+
+  t.is(stringify(obj, null, 2), `{
+  "a": 1, // a
+  "c": 3,
+  "b": 2 // b
+}`)
 })

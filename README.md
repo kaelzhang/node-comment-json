@@ -97,10 +97,10 @@ If the `content` is:
 { // before:foo
   // before:foo
   /* before:foo */
-  "foo" /* after-prop:foo */: // after-comma:foo
+  "foo" /* after-prop:foo */: // after-colon:foo
   1 // after-value:foo
   // after-value:foo
-  , // before:bar
+  , // after-comma:foo
   // before:bar
   "bar": [ // before:0
     // before:0
@@ -177,7 +177,7 @@ And the result will be:
 }
 ```
 
-There are **EIGHT** kinds of symbol properties:
+There are **NINE** kinds of symbol properties:
 
 ```js
 // Comments before everything
@@ -189,7 +189,7 @@ Symbol.for('before')
 // comment tokens before
 // - a property of an object
 // - an item of an array
-// and before the previous comma(`,`) or the opening bracket(`{` or `[`)
+// and after the previous comma(`,`) or the opening bracket(`{` or `[`)
 Symbol.for(`before:${prop}`)
 
 // comment tokens after property key `prop` and before colon(`:`)
@@ -204,6 +204,9 @@ Symbol.for(`after-colon:${prop}`)
 // and before the next key-value/item delimiter(`,`)
 // or the closing bracket(`}` or `]`)
 Symbol.for(`after-value:${prop}`)
+
+// comment tokens after the comma(`,`)
+Symbol.for(`after-comma:${prop}`)
 
 // if comments after
 // - the last key-value:pair of an object
