@@ -481,3 +481,7 @@ And it will print:
 ## License
 
 [MIT](LICENSE)
+
+## Change Logs
+
+See [releases](https://github.com/kaelzhang/node-comment-json/releases)
