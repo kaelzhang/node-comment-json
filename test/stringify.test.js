@@ -122,10 +122,16 @@ OLD_CASES.forEach(name => {
 
 test('#17: has trailing comma and comment after comma', t => {
   const str = `{
+  "b": [
+    1,
+  ],
   "a": 1, // a
 }`
 
   t.is(stringify(parse(str), null, 2), `{
+  "b": [
+    1
+  ],
   "a": 1 // a
 }`)
 })

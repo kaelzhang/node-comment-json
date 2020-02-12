@@ -123,7 +123,7 @@ console.log(stringify(parsed, null, 2))
 // 🚀 Exact as the content above! 🚀
 ```
 
-And the result will be:
+And the value of `parsed` will be:
 
 ```js
 {
@@ -452,6 +452,30 @@ stringify(parsed, null, 2)
 //     "baz"
 //   ]
 // }
+```
+
+## Special Cases about Trailing Comma
+
+If we have a JSON string `str`
+
+```js
+{
+  "foo": "bar", // comment
+}
+```
+
+```js
+// When stringify, trailing commas will be eliminated
+const stringified = stringify(parse(str), null, 2)
+console.log(stringified)
+```
+
+And it will print:
+
+```js
+{
+  "foo": "bar" // comment
+}
 ```
 
 ## License
