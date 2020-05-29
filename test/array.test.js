@@ -236,8 +236,12 @@ test('assign', t => {
   "a": 1
 }`)
 
-  t.throws(() => assign({}, parsed, false), /keys/)
-  t.throws(() => assign(), /convert/)
+  t.throws(() => assign({}, parsed, false), {
+    message: /keys/
+  })
+  t.throws(() => assign(), {
+    message: /convert/
+  })
 })
 
 test('concat', t => {
