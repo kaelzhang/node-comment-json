@@ -257,8 +257,12 @@ const parse_object = () => {
     }
 
     started = true
-    expect('String')
-    name = JSON.parse(current.value)
+    if (is('Identifier')) {
+      name = JSON.parse(wrapInQuotes(current.value));
+    } else {
+      expect('String');
+      name = JSON.parse(coerceStringLike(current.value, 'String'));
+    }
 
     set_prop(name)
     assign_comments(PREFIX_BEFORE)
@@ -341,6 +345,20 @@ const parse_array = () => {
   return array
 }
 
+function wrapInQuotes(s) {
+  return '"' + s + '"';
+}
+function coerceStringLike(v, tt) {
+  if (tt == 'String')
+    var m = v.match(/^'(.*)'/);
+    if (m) {
+      return wrapInQuotes(m[1].replace(/"/g, "\\\"").replace(/\\'/g, "\\\""));
+  } else if (tt == 'Identifier') {
+    return wrapInQuotes(v);
+  }
+  return v;
+}
+
 function walk () {
   let tt = type()
 
@@ -370,7 +388,8 @@ function walk () {
   case 'Boolean':
   case 'Null':
   case 'Numeric':
-    v = current.value
+  case 'Identifier':
+    v = coerceStringLike(current.value, tt);
     next()
     return JSON.parse(negative + v)
   default:
