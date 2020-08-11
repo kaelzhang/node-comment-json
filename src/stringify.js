@@ -317,6 +317,22 @@ const get_indent = space => isString(space)
     ? repeat(SPACE, space)
     : EMPTY
 
+const {toString} = Object.prototype
+const PRIMITIVE_OBJECT_TYPES = [
+  '[object Number]',
+  '[object String]',
+  '[object Boolean]'
+]
+
+const is_primitive_object = subject => {
+  if (typeof subject !== 'object') {
+    return false
+  }
+
+  const str = toString.call(subject)
+  return PRIMITIVE_OBJECT_TYPES.includes(str)
+}
+
 // @param {function()|Array} replacer
 // @param {string|number} space
 module.exports = (value, replacer_, space) => {
@@ -334,8 +350,6 @@ module.exports = (value, replacer_, space) => {
     return JSON.stringify(value, replacer_)
   }
 
-  // ~~If there is a replacer, it must be a function or an array.
-  // Otherwise, throw an error.~~
   // vanilla `JSON.parse` allow invalid replacer
   if (!isFunction(replacer_) && !isArray(replacer_)) {
     replacer_ = null
@@ -344,7 +358,9 @@ module.exports = (value, replacer_, space) => {
   replacer = replacer_
   indent = indent_
 
-  const str = stringify('', {'': value}, EMPTY)
+  const str = is_primitive_object(value)
+    ? JSON.stringify(value)
+    : stringify('', {'': value}, EMPTY)
 
   clean()
 

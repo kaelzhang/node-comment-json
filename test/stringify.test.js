@@ -153,3 +153,26 @@ test('#17: insert key between a and b', t => {
   "b": 2 // b
 }`)
 })
+
+test('#22: stringify parsed primitive', t => {
+  const CASES = [
+    ['1 /* comment */', '1'],
+    ['// comment\n1', '1'],
+    ['true // comment', 'true'],
+    ['"1" // comment', '"1"']
+  ]
+
+  for (const [str, str2] of CASES) {
+    t.is(
+      stringify(parse(str), null, 2),
+      str,
+      `${str} with space`
+    )
+
+    t.is(
+      stringify(parse(str)),
+      str2,
+      `${str} with no space`
+    )
+  }
+})
