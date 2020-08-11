@@ -6,6 +6,7 @@ const {parse, stringify, assign} = require('..')
 
 const SUBJECTS = [
   'abc',
+  '\u00ad\u0600',
   1,
   true,
   false,
