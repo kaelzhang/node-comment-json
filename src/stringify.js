@@ -196,10 +196,6 @@ const object_stringify = (value, gap) => {
 
   const deeper_gap = gap + indent
 
-  const colon_value_gap = indent
-    ? SPACE
-    : EMPTY
-
   // From the first element to before close
   let inside = EMPTY
   let after_comma = EMPTY
@@ -237,7 +233,7 @@ const object_stringify = (value, gap) => {
     + process_comments(value, AFTER_PROP(key), deeper_gap)
     + COLON
     + process_comments(value, AFTER_COLON(key), deeper_gap)
-    + colon_value_gap
+    + SPACE
     + sv
     + process_comments(value, AFTER_VALUE(key), deeper_gap)
 

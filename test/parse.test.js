@@ -8,6 +8,30 @@ const parser = require('..')
 
 const cases = [
   {
+    d: 'empty object',
+    s: `
+{
+  // comment
+}
+`,
+    o: '{}',
+    e (t, obj) {
+      t.is(obj[Symbol.for('before')][0].value, ' comment')
+    }
+  },
+  {
+    d: 'empty array',
+    s: `
+[
+  // comment
+]
+`,
+    o: '[]',
+    e (t, obj) {
+      t.is(obj[Symbol.for('before')][0].value, ' comment')
+    }
+  },
+  {
     d: '#17: after-comma comment, with trailing comma',
     s: `//top
 {

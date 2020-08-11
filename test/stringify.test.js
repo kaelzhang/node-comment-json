@@ -20,7 +20,10 @@ const SUBJECTS = [
     a: undefined,
     b: false,
     c: [1, '1'],
-    d: 'bar'
+    d: 'bar',
+    e: {
+      f: 2
+    }
   },
   Number.POSITIVE_INFINITY,
   Number.NEGATIVE_INFINITY,
@@ -40,6 +43,7 @@ const SUBJECTS = [
 
 const REPLACERS = [
   null,
+  ['a'],
   (key, value) => {
     if (typeof value === 'string') {
       return undefined
