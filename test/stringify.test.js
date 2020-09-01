@@ -181,3 +181,17 @@ test('#22: stringify parsed primitive', t => {
     )
   }
 })
+
+test('#21: comma placement', t => {
+  const parsed = parse(`{
+  "foo": "bar" // comment
+}`
+  )
+
+  parsed.bar = 'baz'
+
+  t.is(stringify(parsed, null, 2), `{
+  "foo": "bar", // comment
+  "bar": "baz"
+}`)
+})
