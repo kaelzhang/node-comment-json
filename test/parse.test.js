@@ -8,6 +8,19 @@ const parser = require('..')
 
 const cases = [
   {
+    d: '#21: introduce `after:prop` symbol',
+    s: `{
+  "foo": "bar" /* after value:foo */, // after:foo
+  "bar": "baz" // after:baz
+}`,
+    o: '{"foo":"bar","bar":"baz"}',
+    e (t, obj) {
+      t.is(obj[Symbol.for('after-value:foo')][0].value, ' after value:foo ')
+      t.is(obj[Symbol.for('after:foo')][0].value, ' after:foo')
+      t.is(obj[Symbol.for('after:bar')][0].value, ' after:baz')
+    }
+  },
+  {
     d: 'empty object',
     s: `
 {
@@ -55,7 +68,7 @@ const cases = [
     o: '{"foo":"bar"}',
     e (t, obj) {
       t.is(obj.foo, 'bar')
-      t.is(obj[Symbol.for('after')][0].value, ' after')
+      t.is(obj[Symbol.for('after:foo')][0].value, ' after')
     }
   },
   {
@@ -142,7 +155,7 @@ const cases = [
     o: '{"a":1}',
     e (t, obj) {
       t.is(obj.a, 1)
-      const [c] = obj[Symbol.for('after-value:a')]
+      const [c] = obj[Symbol.for('after:a')]
       t.is(c.value, 'b')
       t.is(c.inline, true)
     }

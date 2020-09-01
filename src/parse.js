@@ -135,24 +135,24 @@ const restore_comments_host = () => {
   comments_host = previous_hosts.pop()
 }
 
-const assign_after_comma_comments = () => {
+const assign_after_comments = () => {
   if (!unassigned_comments) {
     return
   }
 
-  const after_comma_comments = []
+  const after_comments = []
 
   for (const comment of unassigned_comments) {
     // If the comment is inline, then it is an after-comma comment
     if (comment.inline) {
-      after_comma_comments.push(comment)
+      after_comments.push(comment)
     // Otherwise, all comments are before:<next-prop> comment
     } else {
       break
     }
   }
 
-  const {length} = after_comma_comments
+  const {length} = after_comments
   if (!length) {
     return
   }
@@ -164,7 +164,7 @@ const assign_after_comma_comments = () => {
     unassigned_comments.splice(0, length)
   }
 
-  comments_host[symbolFor(PREFIX_AFTER)] = after_comma_comments
+  comments_host[symbolFor(PREFIX_AFTER)] = after_comments
 }
 
 const assign_comments = prefix => {
@@ -237,12 +237,14 @@ const parse_object = () => {
 
   while (!is(CURLY_BRACKET_CLOSE)) {
     if (started) {
+      assign_comments(PREFIX_AFTER_VALUE)
+
       // key-value pair delimiter
       expect(COMMA)
       next()
       parse_comments()
 
-      assign_after_comma_comments()
+      assign_after_comments()
 
       // If there is a trailing comma, we might reach the end
       // ```
@@ -271,20 +273,23 @@ const parse_object = () => {
     parse_comments(PREFIX_AFTER_COLON)
 
     obj[name] = transform(name, walk())
-    parse_comments(PREFIX_AFTER_VALUE)
+    parse_comments()
+  }
+
+  if (started) {
+    // If there are properties,
+    // then the unassigned comments are after comments
+    assign_comments(PREFIX_AFTER)
   }
 
   // bypass }
   next()
   last_prop = undefined
 
-  // If there is no properties in the object,
-  // try to save unassigned comments
-  assign_comments(
-    started
-      ? PREFIX_AFTER
-      : PREFIX_BEFORE
-  )
+  if (!started) {
+    // Otherwise, they are before comments
+    assign_comments(PREFIX_BEFORE)
+  }
 
   restore_comments_host()
   restore_prop()
@@ -308,7 +313,7 @@ const parse_array = () => {
       next()
       parse_comments()
 
-      assign_after_comma_comments()
+      assign_after_comments()
 
       if (is(BRACKET_CLOSE)) {
         break
