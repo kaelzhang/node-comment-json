@@ -195,3 +195,24 @@ test('#21: comma placement', t => {
   "bar": "baz"
 }`)
 })
+
+test('#18', t => {
+  const parsed = parse(`{
+  // comment
+  "foo": "bar"
+}`
+  )
+
+  const sorted = assign({
+    before: 1
+  }, parsed)
+
+  sorted.after = 2
+
+  t.is(stringify(sorted, null, 2), `{
+  "before": 1,
+  // comment
+  "foo": "bar",
+  "after": 2
+}`)
+})
