@@ -3,9 +3,12 @@ const {isArray} = require('core-util-is')
 
 const {
   SYMBOL_PREFIXES,
+
+  UNDEFINED,
+
   symbol,
-  assign_comments,
-  UNDEFINED
+  define,
+  copy_comments
 } = require('./common')
 
 
@@ -17,13 +20,13 @@ const swap_comments = (array, from, to) => {
   SYMBOL_PREFIXES.forEach(prefix => {
     const target_prop = symbol(prefix, to)
     if (!hasOwnProperty(array, target_prop)) {
-      assign_comments(array, array, to, from, prefix)
+      copy_comments(array, array, to, from, prefix)
       return
     }
 
     const comments = array[target_prop]
-    assign_comments(array, array, to, from, prefix)
-    array[symbol(prefix, from)] = comments
+    copy_comments(array, array, to, from, prefix)
+    define(array, symbol(prefix, from), comments)
   })
 }
 
@@ -39,7 +42,7 @@ const reverse_comments = array => {
 
 const move_comment = (target, source, i, offset, remove) => {
   SYMBOL_PREFIXES.forEach(prefix => {
-    assign_comments(target, source, i + offset, i, prefix, remove)
+    copy_comments(target, source, i + offset, i, prefix, remove)
   })
 }
 

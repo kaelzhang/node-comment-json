@@ -27,13 +27,25 @@ const SYMBOL_PREFIXES = [
   PREFIX_AFTER
 ]
 
+const NON_PROP_SYMBOL_KEYS = [
+  PREFIX_BEFORE,
+  PREFIX_BEFORE_ALL,
+  PREFIX_AFTER_ALL
+].map(Symbol.for)
+
 const COLON = ':'
 const UNDEFINED = undefined
 
 
 const symbol = (prefix, key) => Symbol.for(prefix + COLON + key)
 
-const assign_comments = (
+const define = (target, key, value) => Object.defineProperty(target, key, {
+  value,
+  writable: true,
+  configurable: true
+})
+
+const copy_comments = (
   target, source, target_key, source_key, prefix, remove_source
 ) => {
   const source_prop = symbol(prefix, source_key)
@@ -45,7 +57,7 @@ const assign_comments = (
     ? source_prop
     : symbol(prefix, target_key)
 
-  target[target_prop] = source[source_prop]
+  define(target, target_prop, source[source_prop])
 
   if (remove_source) {
     delete source[source_prop]
@@ -61,7 +73,7 @@ const assign = (target, source, keys) => {
 
     target[key] = source[key]
     SYMBOL_PREFIXES.forEach(prefix => {
-      assign_comments(target, source, key, key, prefix)
+      copy_comments(target, source, key, key, prefix)
     })
   })
 
@@ -71,6 +83,7 @@ const assign = (target, source, keys) => {
 
 module.exports = {
   SYMBOL_PREFIXES,
+  NON_PROP_SYMBOL_KEYS,
 
   PREFIX_BEFORE,
   PREFIX_AFTER_PROP,
@@ -94,7 +107,8 @@ module.exports = {
   UNDEFINED,
 
   symbol,
-  assign_comments,
+  define,
+  copy_comments,
 
   assign (target, source, keys) {
     if (!isObject(target)) {
