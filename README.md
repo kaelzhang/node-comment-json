@@ -83,7 +83,7 @@ stringify(obj, null, 2)
 // which will be very useful if we use a json file to store configurations.
 ```
 
-#### Sort keys
+### Sort keys
 
 It is a common use case to sort the keys of a JSON file
 
@@ -95,8 +95,8 @@ const parsed = parse(`{
   "a": 1
 }`)
 
-// Assign the properties including comments from `parsed` to the new object `{}`
-// according to the sequance of the given keys
+// Copy the properties including comments from `parsed` to the new object `{}`
+// according to the sequence of the given keys
 const sorted = assign(
   {},
   parsed,
@@ -112,6 +112,8 @@ console.log(stringify(sorted, null, 2))
 //   "b": 2
 // }
 ```
+
+For details about `assign`, see [here](#assigntarget-object-source-object-keys-array).
 
 ## parse()
 
