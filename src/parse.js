@@ -4,15 +4,30 @@ const esprima = require('esprima')
 
 const {
   CommentArray,
+} = require('./array')
 
+const {
   PREFIX_BEFORE,
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
   PREFIX_AFTER_VALUE,
   PREFIX_AFTER,
+
+  PREFIX_BEFORE_ALL,
+  PREFIX_AFTER_ALL,
+
+  BRACKET_OPEN,
+  BRACKET_CLOSE,
+  CURLY_BRACKET_OPEN,
+  CURLY_BRACKET_CLOSE,
+
   COLON,
+  COMMA,
+  MINUS,
+  EMPTY,
+
   UNDEFINED
-} = require('./array')
+} = require('./common')
 
 const tokenize = code => esprima.tokenize(code, {
   comment: true,
@@ -55,20 +70,9 @@ const free = () => {
   reviver = null
 }
 
-const PREFIX_BEFORE_ALL = 'before-all'
-const PREFIX_AFTER_ALL = 'after-all'
-
-const BRACKET_OPEN = '['
-const BRACKET_CLOSE = ']'
-const CURLY_BRACKET_OPEN = '{'
-const CURLY_BRACKET_CLOSE = '}'
-const COMMA = ','
-const EMPTY = ''
-const MINUS = '-'
-
 const symbolFor = prefix => Symbol.for(
   last_prop !== UNDEFINED
-    ? `${prefix}:${last_prop}`
+    ? prefix + COLON + last_prop
     : prefix
 )
 
@@ -439,22 +443,5 @@ const parse = (code, rev, no_comments) => {
 
 module.exports = {
   parse,
-  tokenize,
-
-  PREFIX_BEFORE,
-  PREFIX_BEFORE_ALL,
-  PREFIX_AFTER_PROP,
-  PREFIX_AFTER_COLON,
-  PREFIX_AFTER_VALUE,
-  PREFIX_AFTER,
-  PREFIX_AFTER_ALL,
-
-  BRACKET_OPEN,
-  BRACKET_CLOSE,
-  CURLY_BRACKET_OPEN,
-  CURLY_BRACKET_CLOSE,
-  COLON,
-  COMMA,
-  EMPTY,
-  UNDEFINED
+  tokenize
 }

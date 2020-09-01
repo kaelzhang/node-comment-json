@@ -1,6 +1,7 @@
 const {parse, tokenize} = require('./parse')
 const stringify = require('./stringify')
-const {CommentArray, assign} = require('./array')
+const {CommentArray} = require('./array')
+const {assign} = require('./common')
 
 module.exports = {
   parse,
