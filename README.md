@@ -1,13 +1,11 @@
 [![Build Status](https://travis-ci.org/kaelzhang/node-comment-json.svg?branch=master)](https://travis-ci.org/kaelzhang/node-comment-json)
 [![Coverage](https://codecov.io/gh/kaelzhang/node-comment-json/branch/master/graph/badge.svg)](https://codecov.io/gh/kaelzhang/node-comment-json)
+[![npm module downloads per month](http://img.shields.io/npm/dm/comment-json.svg)](https://www.npmjs.org/package/comment-json)
 <!-- optional appveyor tst
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/kaelzhang/node-comment-json?branch=master&svg=true)](https://ci.appveyor.com/project/kaelzhang/node-comment-json)
 -->
 <!-- optional npm version
 [![NPM version](https://badge.fury.io/js/comment-json.svg)](http://badge.fury.io/js/comment-json)
--->
-<!-- optional npm downloads
-[![npm module downloads per month](http://img.shields.io/npm/dm/comment-json.svg)](https://www.npmjs.org/package/comment-json)
 -->
 <!-- optional dependency status
 [![Dependency Status](https://david-dm.org/kaelzhang/node-comment-json.svg)](https://david-dm.org/kaelzhang/node-comment-json)
@@ -23,6 +21,17 @@ Parse and stringify JSON with comments. It will retain comments even after saved
 - [Stringify](#stringify) the objects into JSON strings with comments if there are
 
 The usage of `comment-json` is exactly the same as the vanilla [`JSON`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON) object.
+
+## Table of Contents
+
+- [Why](#why) and [How](#how)
+- [Usage and examples](#usage)
+- API reference
+  - [parse](#parse)
+  - [stringify](#stringify)
+  - [assign](#assigntarget-object-source-object-keys-array)
+  - [CommentArray](#commentarray)
+- [Change Logs](https://github.com/kaelzhang/node-comment-json/releases)
 
 ## Why?
 
@@ -72,6 +81,36 @@ console.log(obj.name) // comment-json
 stringify(obj, null, 2)
 // Will be the same as package.json, Oh yeah! 😆
 // which will be very useful if we use a json file to store configurations.
+```
+
+#### Sort keys
+
+It is a common use case to sort the keys of a JSON file
+
+```js
+const parsed = parse(`{
+  // b
+  "b": 2
+  // a
+  "a": 1
+}`)
+
+// Assign the properties including comments from `parsed` to the new object `{}`
+// according to the sequance of the given keys
+const sorted = assign(
+  {},
+  parsed,
+  // You could also use your custom sorting function
+  Object.keys().sort()
+)
+
+console.log(stringify(sorted, null, 2))
+// {
+//   // a
+//   "a": 1,
+//   // b
+//   "b": 2
+// }
 ```
 
 ## parse()
