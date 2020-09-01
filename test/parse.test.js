@@ -21,6 +21,19 @@ const cases = [
     }
   },
   {
+    d: '#21: introduce `after:prop` symbol: array',
+    s: `[
+  1 /* after value:0 */, // after:0
+  2 // after:1
+]`,
+    o: '[1,2]',
+    e (t, obj) {
+      t.is(obj[Symbol.for('after-value:0')][0].value, ' after value:0 ')
+      t.is(obj[Symbol.for('after:0')][0].value, ' after:0')
+      t.is(obj[Symbol.for('after:1')][0].value, ' after:1')
+    }
+  },
+  {
     d: 'empty object',
     s: `
 {
@@ -290,7 +303,7 @@ g*/ //g2
       const [e] = obj.a[Symbol.for('before:1')]
       t.is(e.value, ' e')
 
-      const [n] = obj.a[Symbol.for('after-value:1')]
+      const [n] = obj.a[Symbol.for('after:1')]
       t.is(n.value, ' n')
 
       const [m] = obj.a[Symbol.for('after-value:0')]

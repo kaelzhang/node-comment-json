@@ -309,6 +309,7 @@ const parse_array = () => {
 
   while (!is(BRACKET_CLOSE)) {
     if (started) {
+      assign_comments(PREFIX_AFTER_VALUE)
       expect(COMMA)
       next()
       parse_comments()
@@ -326,18 +327,21 @@ const parse_array = () => {
     assign_comments(PREFIX_BEFORE)
 
     array[i] = transform(i, walk())
-    parse_comments(PREFIX_AFTER_VALUE)
-
     i ++
+
+    parse_comments()
   }
+
+  if (started) {
+    assign_comments(PREFIX_AFTER)
+  }
+
   next()
   last_prop = undefined
 
-  assign_comments(
-    started
-      ? PREFIX_AFTER
-      : PREFIX_BEFORE
-  )
+  if (!started) {
+    assign_comments(PREFIX_BEFORE)
+  }
 
   restore_comments_host()
   restore_prop()
