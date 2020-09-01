@@ -9,7 +9,6 @@ const {
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
   PREFIX_AFTER_VALUE,
-  PREFIX_AFTER_COMMA,
   PREFIX_AFTER,
   PREFIX_AFTER_ALL,
 
@@ -37,7 +36,7 @@ const BEFORE = prop => `${PREFIX_BEFORE}:${prop}`
 const AFTER_PROP = prop => `${PREFIX_AFTER_PROP}:${prop}`
 const AFTER_COLON = prop => `${PREFIX_AFTER_COLON}:${prop}`
 const AFTER_VALUE = prop => `${PREFIX_AFTER_VALUE}:${prop}`
-const AFTER_COMMA = prop => `${PREFIX_AFTER_COMMA}:${prop}`
+const AFTER = prop => `${PREFIX_AFTER}:${prop}`
 
 // table of character substitutions
 const meta = {
@@ -167,7 +166,7 @@ const array_stringify = (value, gap) => {
 
     inside += process_comments(value, AFTER_VALUE(i), deeper_gap)
 
-    after_comma = process_comments(value, AFTER_COMMA(i), deeper_gap)
+    after_comma = process_comments(value, AFTER(i), deeper_gap)
   }
 
   inside += join(
@@ -237,7 +236,7 @@ const object_stringify = (value, gap) => {
     + sv
     + process_comments(value, AFTER_VALUE(key), deeper_gap)
 
-    after_comma = process_comments(value, AFTER_COMMA(key), deeper_gap)
+    after_comma = process_comments(value, AFTER(key), deeper_gap)
   }
 
   keys.forEach(iteratee)

@@ -9,7 +9,7 @@ const {
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
   PREFIX_AFTER_VALUE,
-  PREFIX_AFTER_COMMA,
+  PREFIX_AFTER,
   COLON,
   UNDEFINED
 } = require('./array')
@@ -56,7 +56,6 @@ const free = () => {
 }
 
 const PREFIX_BEFORE_ALL = 'before-all'
-const PREFIX_AFTER = 'after'
 const PREFIX_AFTER_ALL = 'after-all'
 
 const BRACKET_OPEN = '['
@@ -165,7 +164,7 @@ const assign_after_comma_comments = () => {
     unassigned_comments.splice(0, length)
   }
 
-  comments_host[symbolFor(PREFIX_AFTER_COMMA)] = after_comma_comments
+  comments_host[symbolFor(PREFIX_AFTER)] = after_comma_comments
 }
 
 const assign_comments = prefix => {
@@ -438,7 +437,6 @@ module.exports = {
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
   PREFIX_AFTER_VALUE,
-  PREFIX_AFTER_COMMA,
   PREFIX_AFTER,
   PREFIX_AFTER_ALL,
 

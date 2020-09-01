@@ -41,8 +41,8 @@ const cases = [
     o: '{"foo":"bar","bar":"baz"}',
     e (t, obj) {
       t.is(obj.foo, 'bar')
-      t.is(obj[Symbol.for('after-comma:foo')][0].value, ' after comma foo')
-      t.is(obj[Symbol.for('after-comma:bar')][0].value, ' after comma bar')
+      t.is(obj[Symbol.for('after:foo')][0].value, ' after comma foo')
+      t.is(obj[Symbol.for('after:bar')][0].value, ' after comma bar')
     }
   },
   {
@@ -178,7 +178,7 @@ const cases = [
     e (t, obj) {
       t.is(obj.a, 1)
       t.is(obj.b, 2)
-      const [c] = obj[Symbol.for('after-comma:a')]
+      const [c] = obj[Symbol.for('after:a')]
       t.is(c.value, ' a')
       t.is(c.inline, true)
     }
@@ -271,7 +271,7 @@ g*/ //g2
       t.is(b.value, ' b')
       t.is(c.value, 'c')
 
-      const [d] = obj.a[Symbol.for('after-comma:0')]
+      const [d] = obj.a[Symbol.for('after:0')]
       t.is(d.value, ' d')
 
       const [e] = obj.a[Symbol.for('before:1')]
