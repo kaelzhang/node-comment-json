@@ -116,8 +116,20 @@ If the `content` is:
 ```
 
 ```js
+const {inspect} = require('util')
+
 const parsed = parse(content)
-console.log(parsed)
+
+console.log(
+  inspect(parsed, {
+    // Since 4.0.0, symbol properties of comments are not enumerable,
+    // use `showHidden: true` to print them
+    showHidden: true
+  })
+)
+
+console.log(Object.keys(parsed))
+// > ['foo', 'bar']
 
 console.log(stringify(parsed, null, 2))
 // 🚀 Exact as the content above! 🚀
@@ -205,7 +217,9 @@ Symbol.for(`after-colon:${prop}`)
 // or the closing bracket(`}` or `]`)
 Symbol.for(`after-value:${prop}`)
 
-// comment tokens after the comma(`,`)
+// comment tokens after
+// - comma(`,`)
+// - the value of property `prop` if it is the last property
 Symbol.for(`after:${prop}`)
 
 // Comments after everything

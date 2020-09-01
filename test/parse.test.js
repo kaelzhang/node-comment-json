@@ -388,23 +388,34 @@ test('special: null', t => {
   t.is(parser.parse(`// abc\nnull`), null)
 })
 
-test('special: 1', async t => {
+test('special: 1', t => {
   const result = parser.parse(`//abc\n1`)
 
   t.is(Number(result), 1)
   t.is(result[Symbol.for('before-all')][0].value, 'abc')
 })
 
-test('special: "foo"', async t => {
+test('special: "foo"', t => {
   const result = parser.parse(`//abc\n"foo"`)
 
   t.is(String(result), 'foo')
   t.is(result[Symbol.for('before-all')][0].value, 'abc')
 })
 
-test('special: true', async t => {
+test('special: true', t => {
   const result = parser.parse(`//abc\ntrue`)
 
   t.true(Boolean(result))
   t.is(result[Symbol.for('before-all')][0].value, 'abc')
+})
+
+test('#20: Object.keys', t => {
+  const content = `{
+  // comment
+  "foo": "bar"
+}`
+
+  const parsed = parser.parse(content)
+
+  t.deepEqual(Object.keys(parsed), ['foo'])
 })
