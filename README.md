@@ -100,17 +100,17 @@ If the `content` is:
   "foo" /* after-prop:foo */: // after-colon:foo
   1 // after-value:foo
   // after-value:foo
-  , // after-comma:foo
+  , // after:foo
   // before:bar
   "bar": [ // before:0
     // before:0
     "baz" // after-value:0
     // after-value:0
-    , // before:1
+    , // after:0
     "quux"
-    // after-value:1
-  ] // after-value:bar
-  // after-value:bar
+    // after:1
+  ] // after:bar
+  // after:bar
 }
 // after-all
 ```
