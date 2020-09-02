@@ -131,10 +131,14 @@ module.exports = {
 
     if (keys === UNDEFINED) {
       keys = Object.keys(source)
-      // We only assign non-property comments if there `keys` are not specified
+      // We assign non-property comments
+      // if argument `keys` is not specified
       assign_non_prop_comments(target, source)
     } else if (!isArray(keys)) {
       throw new TypeError('keys must be array or undefined')
+    } else if (keys.length === 0) {
+      // Or argument `keys` is an empty array
+      assign_non_prop_comments(target, source)
     }
 
     return assign(target, source, keys)

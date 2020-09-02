@@ -413,7 +413,8 @@ console.log(stringify(result, null, 2)) // is the same as `code`
 This method is used to copy the enumerable own properties and their corresponding comment symbol properties to the target object.
 
 ```js
-const parsed = parse(`{
+const parsed = parse(`// before all
+{
   // This is a comment
   "foo": "bar"
 }`)
@@ -423,11 +424,51 @@ const obj = assign({
 }, parsed)
 
 stringify(obj, null, 2)
+// // before all
 // {
 //   "bar": "baz",
 //   // This is a comment
 //   "foo": "bar"
 // }
+```
+
+### Special cases about `keys`
+
+But if argument `keys` is specified and is not empty, then comment ` before all`, which belongs to no properties, will **NOT** be copied.
+
+```js
+const obj = assign({
+  bar: 'baz'
+}, parsed, ['foo'])
+
+stringify(obj, null, 2)
+// {
+//   "bar": "baz",
+//   // This is a comment
+//   "foo": "bar"
+// }
+```
+
+Specifying the argument `keys` as an empty array indicates that it will only copy non-property symbols of comments
+
+```js
+const obj = assign({
+  bar: 'baz'
+}, parsed, [])
+
+stringify(obj, null, 2)
+// // before all
+// {
+//   "bar": "baz",
+// }
+```
+
+Non-property symbols includes:
+
+```js
+Symbol.for('before-all')
+Symbol.for('before')
+Symbol.for('after-all')
 ```
 
 ## `CommentArray`

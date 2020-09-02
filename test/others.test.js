@@ -117,6 +117,25 @@ test('#26: non-property comments', t => {
   t.is(
     stringify(
       assign(
+        {
+          a: 1
+        },
+        parsed,
+        []
+      ),
+      null, 2
+    ),
+    `// before all
+{
+  "a": 1
+}
+// after all`,
+    'should assign non-property comments if keys is an empty array'
+  )
+
+  t.is(
+    stringify(
+      assign(
         {},
         parsed,
         ['a']
