@@ -64,6 +64,16 @@ const copy_comments = (
   }
 }
 
+const assign_non_prop_comments = (target, source) => {
+  NON_PROP_SYMBOL_KEYS.forEach(key => {
+    const comments = source[key]
+
+    if (comments) {
+      define(target, key, comments)
+    }
+  })
+}
+
 // Assign keys and comments
 const assign = (target, source, keys) => {
   keys.forEach(key => {
@@ -83,7 +93,6 @@ const assign = (target, source, keys) => {
 
 module.exports = {
   SYMBOL_PREFIXES,
-  NON_PROP_SYMBOL_KEYS,
 
   PREFIX_BEFORE,
   PREFIX_AFTER_PROP,
@@ -109,6 +118,7 @@ module.exports = {
   symbol,
   define,
   copy_comments,
+  assign_non_prop_comments,
 
   assign (target, source, keys) {
     if (!isObject(target)) {
@@ -121,6 +131,8 @@ module.exports = {
 
     if (keys === UNDEFINED) {
       keys = Object.keys(source)
+      // We only assign non-property comments if there `keys` are not specified
+      assign_non_prop_comments(target, source)
     } else if (!isArray(keys)) {
       throw new TypeError('keys must be array or undefined')
     }

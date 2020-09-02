@@ -7,8 +7,6 @@ const {
 } = require('./array')
 
 const {
-  NON_PROP_SYMBOL_KEYS,
-
   PREFIX_BEFORE,
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
@@ -30,7 +28,8 @@ const {
 
   UNDEFINED,
 
-  define
+  define,
+  assign_non_prop_comments
 } = require('./common')
 
 const tokenize = code => esprima.tokenize(code, {
@@ -433,13 +432,7 @@ const parse = (code, rev, no_comments) => {
       result = new Object(result)
     }
 
-    NON_PROP_SYMBOL_KEYS.forEach(key => {
-      const comments = comments_host[key]
-
-      if (comments) {
-        define(result, key, comments)
-      }
-    })
+    assign_non_prop_comments(result, comments_host)
   }
 
   restore_comments_host()
