@@ -53,7 +53,9 @@ For JSON array with comments, `comment-json` extends the vanilla `Array` object 
 $ npm i comment-json
 ```
 
-For TypeScript developers, [`@types/comment-json`](https://www.npmjs.com/package/@types/comment-json) could be used.
+~~For TypeScript developers, [`@types/comment-json`](https://www.npmjs.com/package/@types/comment-json) could be used~~
+
+Since `2.4.1`, `comment-json` contains typescript declarations, so you might as well remove `@types/comment-json`.
 
 ## Usage
 
