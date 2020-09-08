@@ -101,7 +101,7 @@ const sorted = assign(
   {},
   parsed,
   // You could also use your custom sorting function
-  Object.keys().sort()
+  Object.keys(parsed).sort()
 )
 
 console.log(stringify(sorted, null, 2))
@@ -463,7 +463,7 @@ stringify(obj, null, 2)
 // }
 ```
 
-Non-property symbols includes:
+Non-property symbols include:
 
 ```js
 Symbol.for('before-all')
