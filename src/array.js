@@ -1,5 +1,5 @@
-const hasOwnProperty = require('has-own-prop')
 const {isArray} = require('core-util-is')
+const {sort} = require('array-timsort')
 
 const {
   SYMBOL_PREFIXES,
@@ -7,29 +7,10 @@ const {
   UNDEFINED,
 
   symbol,
-  define,
-  copy_comments,
-  copy_all_comments
+  copy_all_comments,
+  swap_comments
 } = require('./common')
 
-
-const swap_comments = (array, from, to) => {
-  if (from === to) {
-    return
-  }
-
-  SYMBOL_PREFIXES.forEach(prefix => {
-    const target_prop = symbol(prefix, to)
-    if (!hasOwnProperty(array, target_prop)) {
-      copy_comments(array, array, to, from, prefix)
-      return
-    }
-
-    const comments = array[target_prop]
-    copy_comments(array, array, to, from, prefix)
-    define(array, symbol(prefix, from), comments)
-  })
-}
 
 const reverse_comments = array => {
   const {length} = array
@@ -234,6 +215,43 @@ class CommentArray extends Array {
     })
 
     return ret
+  }
+
+  sort (...args) {
+    const result = sort(
+      this,
+      // Make sure there is no more than one argument
+      ...args.slice(0, 1)
+    )
+
+    // For example,
+    // if we sort ['c', 'a', 'b', 'd'],
+    // then `result` will be [1, 2, 0, 3], and the array is ['a', 'b', 'c', 'd']
+
+    // First, we swap index 0 and index 1, then the array comments are
+    // ['a.comments', 'c.comments', 'b.comments', 'd.comments']
+
+    // Then swap index 1 and index 2
+    // ['a.comments', 'b.comments', 'c.comments', 'd.comments']
+
+    // And we should not swap index 2 and index 0
+
+    const sorted = new Set()
+
+    result.forEach((new_index, original_index) => {
+      if (new_index === original_index) {
+        return
+      }
+
+      if (sorted.has(new_index) && sorted.has(original_index)) {
+        return
+      }
+
+      sorted.add(new_index)
+      sorted.add(original_index)
+
+      swap_comments(this, new_index, original_index)
+    })
   }
 }
 

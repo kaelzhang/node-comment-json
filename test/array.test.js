@@ -29,8 +29,17 @@ const a3 = `[
   0
 ]`
 
-// ret: return value to expect
-const texpect = (t, ret, str, r, rr) => {
+const texpect = (
+  t,
+  // cleaned parsed
+  ret,
+  // stringified value from parsed
+  str,
+  // parsed value
+  r,
+  // real return value
+  rr
+) => {
   if (isObject(ret)) {
     t.deepEqual(r, ret)
   } else {
@@ -110,7 +119,11 @@ const CASES = [
     'slice(-1)',
     a1,
     array => array.slice(- 1),
-    slice([2], `[
+    slice(
+      // cleaned object after parsed and sliced
+      [2],
+      // parse, slice and then stringify
+      `[
   // 2
   2
 ]`)
@@ -184,6 +197,24 @@ const CASES = [
 ]`)
   ],
   [
+    'reverse, no mess',
+    `[
+  0, // 0
+  // 1
+  1,
+  // 2
+  2
+]`,
+    array => array.reverse(),
+    unshift([2, 1, 0], `[
+  // 2
+  2,
+  // 1
+  1,
+  0 // 0
+]`)
+  ],
+  [
     'pop',
     a1,
     array => array.pop(),
@@ -210,11 +241,16 @@ CASES.forEach(([d, a, run, e, s]) => {
 
     expect(
       t,
+      // Cleaned return value
       isArray(ret)
         // clean ret
         ? [...ret]
         : ret,
-      st(parsed), parsed, ret)
+      // Stringified
+      st(parsed),
+      parsed,
+      ret
+    )
   })
 })
 
