@@ -224,8 +224,57 @@ const CASES = [
   // 1
   1
 ]`)
-  ]
+  ],
+  [
+    'sort, default lex sort',
+    `[
+  // before c
+  "c",
+  "a", // after a
+  "b" /* after b value */,
+  "d"
+]`,
+    array => {
+      array.sort()
+      return array
+    },
+    unshift(['a', 'b', 'c', 'd'], `[
+  "a", // after a
+  "b" /* after b value */,
+  // before c
+  "c",
+  "d"
+]`)
+  ],
+  [
+    'sort, with `compareFunction`',
+    `[
+  // before c
+  "c",
+  "a", // after a
+  "b" /* after b value */,
+  // before d
+  "d"
+]`,
+    array => {
+      array.sort(
+        (a, b) => a > b
+          ? - 1
+          : 1
+      )
+      return array
+    },
+    unshift(['d', 'c', 'b', 'a'], `[
+  // before d
+  "d",
+  // before c
+  "c",
+  "b" /* after b value */,
+  "a" // after a
+]`)
+  ],
 ]
+
 
 CASES.forEach(([d, a, run, e, s]) => {
   test(d, t => {

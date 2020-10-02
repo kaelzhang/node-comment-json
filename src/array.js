@@ -69,6 +69,17 @@ const move_comments = (
   }
 }
 
+const get_mapped = (map, key) => {
+  let mapped = key
+
+  while (mapped in map) {
+    mapped = map[mapped]
+  }
+
+  return mapped
+}
+
+
 class CommentArray extends Array {
   // - deleteCount + items.length
 
@@ -225,35 +236,48 @@ class CommentArray extends Array {
     )
 
     // For example,
-    // if we sort ['c', 'a', 'b', 'd'],
-    // then `result` will be [1, 2, 0, 3], and the array is ['a', 'b', 'c', 'd']
+    // if we sort ['b', 'd', 'c', 'a'],
+    // then `result` will be [3, 0, 2, 1], and the array is ['a', 'b', 'c', 'd']
 
-    // First, we swap index 0 and index 1, then the array comments are
-    // ['a.comments', 'c.comments', 'b.comments', 'd.comments']
+    // First, we swap index 0 (b) and index 3 (a), then the array comments are
+    // ['a.comments', 'd.comments', 'c.comments', 'b.comments']
+    // index 0 is finalized
+    // index 3 is actually mapped to original index 0, we present as 0 -> 3
 
-    // Then swap index 1 and index 2
-    // ['a.comments', 'b.comments', 'c.comments', 'd.comments']
+    // Then swap index 1 (d) and index 0 (-> 3, b)
+    // 1 (index) -> 0 (new index) -> 3 (real_index)
+    // ['d.comments', 'b.comments', 'c.comments', 'd.comments']
+    // index 1 is finalized
+    // index 3 is contains the item of original index 1
+    // - we present as 1 -> 3
+    // - it is ok that we don't remove mapping 0 -> 3
 
-    // And we should not swap index 2 and index 0
+    // Then index 2 should be skipped
 
-    const sorted = new Set()
+    // Then swap index 3 (d) and index 1 (-> 3, b), skipped
 
-    result.forEach((new_index, original_index) => {
-      if (new_index === original_index) {
+    const map = Object.create(null)
+
+    result.forEach((source_index, index) => {
+      if (source_index === index) {
         return
       }
 
-      if (sorted.has(new_index) && sorted.has(original_index)) {
+      const real_source_index = get_mapped(map, source_index)
+
+      if (real_source_index === index) {
         return
       }
 
-      sorted.add(new_index)
-      sorted.add(original_index)
+      // The item of index `index` gets the final value
+      // delete map[index]
+      map[index] = real_source_index
 
-      swap_comments(this, new_index, original_index)
+      swap_comments(this, index, real_source_index)
     })
   }
 }
+
 
 module.exports = {
   CommentArray
