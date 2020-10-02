@@ -64,6 +64,14 @@ const copy_comments = (
   }
 }
 
+const copy_all_comments = (
+  target, source, target_key, source_key, remove_source
+) => {
+  SYMBOL_PREFIXES.forEach(prefix => {
+    copy_comments(target, source, target_key, source_key, prefix, remove_source)
+  })
+}
+
 const assign_non_prop_comments = (target, source) => {
   NON_PROP_SYMBOL_KEYS.forEach(key => {
     const comments = source[key]
@@ -82,9 +90,7 @@ const assign = (target, source, keys) => {
     }
 
     target[key] = source[key]
-    SYMBOL_PREFIXES.forEach(prefix => {
-      copy_comments(target, source, key, key, prefix)
-    })
+    copy_all_comments(target, source, key, key)
   })
 
   return target
@@ -118,6 +124,7 @@ module.exports = {
   symbol,
   define,
   copy_comments,
+  copy_all_comments,
   assign_non_prop_comments,
 
   assign (target, source, keys) {

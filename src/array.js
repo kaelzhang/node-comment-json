@@ -8,7 +8,8 @@ const {
 
   symbol,
   define,
-  copy_comments
+  copy_comments,
+  copy_all_comments
 } = require('./common')
 
 
@@ -41,9 +42,7 @@ const reverse_comments = array => {
 }
 
 const move_comment = (target, source, i, offset, remove) => {
-  SYMBOL_PREFIXES.forEach(prefix => {
-    copy_comments(target, source, i + offset, i, prefix, remove)
-  })
+  copy_all_comments(target, source, i + offset, i, remove)
 }
 
 const move_comments = (
