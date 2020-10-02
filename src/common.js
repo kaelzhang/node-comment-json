@@ -45,7 +45,7 @@ const define = (target, key, value) => Object.defineProperty(target, key, {
   configurable: true
 })
 
-const copy_comments = (
+const copy_comments_by_kind = (
   target, source, target_key, source_key, prefix, remove_source
 ) => {
   const source_prop = symbol(prefix, source_key)
@@ -64,11 +64,13 @@ const copy_comments = (
   }
 }
 
-const copy_all_comments = (
+const copy_comments = (
   target, source, target_key, source_key, remove_source
 ) => {
   SYMBOL_PREFIXES.forEach(prefix => {
-    copy_comments(target, source, target_key, source_key, prefix, remove_source)
+    copy_comments_by_kind(
+      target, source, target_key, source_key, prefix, remove_source
+    )
   })
 }
 
@@ -80,14 +82,14 @@ const swap_comments = (array, from, to) => {
   SYMBOL_PREFIXES.forEach(prefix => {
     const target_prop = symbol(prefix, to)
     if (!hasOwnProperty(array, target_prop)) {
-      copy_comments(array, array, to, from, prefix, true)
+      copy_comments_by_kind(array, array, to, from, prefix, true)
       return
     }
 
     const comments = array[target_prop]
     delete array[target_prop]
 
-    copy_comments(array, array, to, from, prefix, true)
+    copy_comments_by_kind(array, array, to, from, prefix, true)
     define(array, symbol(prefix, from), comments)
   })
 }
@@ -110,7 +112,7 @@ const assign = (target, source, keys) => {
     }
 
     target[key] = source[key]
-    copy_all_comments(target, source, key, key)
+    copy_comments(target, source, key, key)
   })
 
   return target
@@ -144,7 +146,6 @@ module.exports = {
   symbol,
   define,
   copy_comments,
-  copy_all_comments,
   swap_comments,
   assign_non_prop_comments,
 

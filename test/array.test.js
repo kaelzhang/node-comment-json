@@ -153,6 +153,19 @@ const CASES = [
     slice([0], a3)
   ],
   [
+    'slice(0, 1), no mess',
+    `[
+  // 0
+  0,
+  1 // 1
+]`,
+    array => array.slice(0, 1),
+    slice([0], `[
+  // 0
+  0
+]`)
+  ],
+  [
     'unshift()',
     a1,
     array => array.unshift(),
@@ -181,6 +194,20 @@ const CASES = [
   1,
   // 2
   2
+]`)
+  ],
+  [
+    'shift, no mess',
+    `[
+  // 0
+  0,
+  1 /* 1 */,
+  2 // 2
+]`,
+    array => array.shift(),
+    unshift(0, `[
+  1 /* 1 */,
+  2 // 2
 ]`)
   ],
   [

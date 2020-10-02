@@ -7,7 +7,7 @@ const {
   UNDEFINED,
 
   symbol,
-  copy_all_comments,
+  copy_comments,
   swap_comments
 } = require('./common')
 
@@ -23,7 +23,7 @@ const reverse_comments = array => {
 }
 
 const move_comment = (target, source, i, offset, remove) => {
-  copy_all_comments(target, source, i + offset, i, remove)
+  copy_comments(target, source, i + offset, i, remove)
 }
 
 const move_comments = (
@@ -50,13 +50,12 @@ const move_comments = (
 
     // From [count - 1, 0]
     while (i -- > 0) {
-      move_comment(target, source, start + i, offset, remove && i < offset)
+      move_comment(target, source, start + i, offset, remove)
     }
     return
   }
 
   let i = 0
-  const min_remove = count + offset
   // | remove  |  count    |
   //           -------------
   // -------------
@@ -65,8 +64,15 @@ const move_comments = (
   // From [0, count - 1]
   while (i < count) {
     const ii = i ++
-    move_comment(target, source, start + ii, offset, remove && i >= min_remove)
+    move_comment(target, source, start + ii, offset, remove)
   }
+}
+
+const remove_comments = (array, key) => {
+  SYMBOL_PREFIXES.forEach(prefix => {
+    const prop = symbol(prefix, key)
+    delete array[prop]
+  })
 }
 
 const get_mapped = (map, key) => {
@@ -178,6 +184,7 @@ class CommentArray extends Array {
     const ret = super.shift()
     const {length} = this
 
+    remove_comments(this, 0)
     move_comments(this, this, 1, length, - 1, true)
 
     return ret
@@ -195,11 +202,7 @@ class CommentArray extends Array {
     const ret = super.pop()
 
     // Removes comments
-    const {length} = this
-    SYMBOL_PREFIXES.forEach(prefix => {
-      const prop = symbol(prefix, length)
-      delete this[prop]
-    })
+    remove_comments(this, this.length)
 
     return ret
   }
