@@ -357,25 +357,31 @@ test('assign', t => {
 })
 
 test('concat', t => {
-  const parsed = parse(`[
+  const parsed1 = parse(`[
+  // foo
+  "foo"
+]`)
+
+  const parsed2 = parse(`[
   // bar
   "bar",
   // baz,
   "baz"
 ]`)
 
-  const concated = new CommentArray('quux').concat(
-    'qux',
-    parsed
+  const concated = parsed1.concat(
+    parsed2,
+    'qux'
   )
 
   t.is(stringify(concated, null, 2), `[
-  "quux",
-  "qux",
+  // foo
+  "foo",
   // bar
   "bar",
   // baz,
-  "baz"
+  "baz",
+  "qux"
 ]`)
 
   t.is(stringify(new CommentArray().concat()), '[]')
