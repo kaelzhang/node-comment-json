@@ -261,10 +261,7 @@ const CASES = [
   "b" /* after b value */,
   "d"
 ]`,
-    array => {
-      array.sort()
-      return array
-    },
+    array => array.sort(),
     unshift(['a', 'b', 'c', 'd'], `[
   "a", // after a
   "b" /* after b value */,

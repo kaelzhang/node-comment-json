@@ -280,6 +280,8 @@ class CommentArray extends Array {
 
       swap_comments(this, index, real_source_index)
     })
+
+    return this
   }
 }
 
