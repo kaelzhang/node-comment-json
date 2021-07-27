@@ -1,6 +1,6 @@
 {
   "name": "comment-json",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Parse and stringify JSON with comments. It will retain comments even after saved!",
   "main": "src/index.js",
   "scripts": {
