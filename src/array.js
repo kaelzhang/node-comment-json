@@ -215,6 +215,8 @@ class CommentArray extends Array {
       return ret
     }
 
+    move_comments(ret, this, 0, this.length, 0)
+
     items.forEach(item => {
       const prev = length
       length += isArray(item)
