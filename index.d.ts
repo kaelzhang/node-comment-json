@@ -8,16 +8,14 @@ export class CommentArray<TValue> extends Array<TValue> {
   [key: symbol]: CommentToken
 }
 
-export type CommentJSONArray<TValue> = CommentArray<TValue>
-
 export type CommentJSONValue = number
   | string
   | null
   | boolean
   | CommentArray<CommentJSONValue>
-  | CommentJSONObject
+  | CommentObject
 
-export interface CommentJSONObject {
+export interface CommentObject {
   [key: string]: CommentJSONValue
   [key: symbol]: CommentToken
 }
