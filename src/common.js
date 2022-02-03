@@ -1,7 +1,6 @@
 const hasOwnProperty = require('has-own-prop')
 const {isObject, isArray} = require('core-util-is')
 
-
 const PREFIX_BEFORE = 'before'
 const PREFIX_AFTER_PROP = 'after-prop'
 const PREFIX_AFTER_COLON = 'after-colon'
@@ -35,7 +34,6 @@ const NON_PROP_SYMBOL_KEYS = [
 
 const COLON = ':'
 const UNDEFINED = undefined
-
 
 const symbol = (prefix, key) => Symbol.for(prefix + COLON + key)
 
@@ -117,7 +115,6 @@ const assign = (target, source, keys) => {
 
   return target
 }
-
 
 module.exports = {
   SYMBOL_PREFIXES,

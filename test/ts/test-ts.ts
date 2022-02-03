@@ -4,6 +4,7 @@ import {
   tokenize,
 
   CommentArray,
+  CommentJSONObject,
   assign
 } from '../..'
 
@@ -13,7 +14,7 @@ const assert = (test: boolean, message: string): void => {
   }
 }
 
-assert(parse('{"a":1}').a === 1, 'basic parse')
+assert((parse('{"a":1}') as CommentJSONObject).a === 1, 'basic parse')
 
 const str = `{
   // This is a comment

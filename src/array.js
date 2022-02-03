@@ -11,7 +11,6 @@ const {
   swap_comments
 } = require('./common')
 
-
 const reverse_comments = array => {
   const {length} = array
   let i = 0
@@ -84,7 +83,6 @@ const get_mapped = (map, key) => {
 
   return mapped
 }
-
 
 class CommentArray extends Array {
   // - deleteCount + items.length
@@ -284,7 +282,6 @@ class CommentArray extends Array {
     return this
   }
 }
-
 
 module.exports = {
   CommentArray

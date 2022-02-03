@@ -4,42 +4,49 @@
 // Definitions by: Jason Dent <https://github.com/Jason3S>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-export type CommentJSONValue = number | string | null | boolean | CommentJSONArray<CommentJSONValue> | CommentJSONObject
-
-export class CommentJSONArray<TValue> extends Array<TValue> {
-  [key: symbol]: CommentToken;
+export class CommentArray<TValue> extends Array<TValue> {
+  [key: symbol]: CommentToken
 }
 
+export type CommentJSONArray<TValue> = CommentArray<TValue>
+
+export type CommentJSONValue = number
+  | string
+  | null
+  | boolean
+  | CommentArray<CommentJSONValue>
+  | CommentJSONObject
+
 export interface CommentJSONObject {
-  [key: string]: CommentJSONValue;
-  [key: symbol]: CommentToken;
+  [key: string]: CommentJSONValue
+  [key: symbol]: CommentToken
 }
 
 export interface CommentToken {
   type: 'BlockComment' | 'LineComment'
   // The content of the comment, including whitespaces and line breaks
-  value: string;
+  value: string
   // If the start location is the same line as the previous token,
   // then `inline` is `true`
-  inline: boolean;
+  inline: boolean
   // But pay attention that,
   // locations will NOT be maintained when stringified
-  loc: CommentLocation;
+  loc: CommentLocation
 }
 
 export interface CommentLocation {
   // The start location begins at the `//` or `/*` symbol
-  start: Location;
+  start: Location
   // The end location of multi-line comment ends at the `*/` symbol
-  end: Location;
+  end: Location
 }
 
 export interface Location {
-  line: number;
-  column: number;
+  line: number
+  column: number
 }
 
-export type Reviver = (k: number | string, v: unknown) => unknown;
+export type Reviver = (k: number | string, v: unknown) => unknown
 
 /**
  * Converts a JavaScript Object Notation (JSON) string into an object.
@@ -48,7 +55,11 @@ export type Reviver = (k: number | string, v: unknown) => unknown;
  * @param removesComments If true, the comments won't be maintained, which is often used when we want to get a clean object.
  * If a member contains nested objects, the nested objects are transformed before the parent object is.
  */
-export function parse(json: string, reviver?: Reviver, removesComments?: boolean): CommentJSONValue;
+export function parse(
+  json: string,
+  reviver?: Reviver,
+  removesComments?: boolean
+): CommentJSONValue
 
 /**
  * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
@@ -56,21 +67,31 @@ export function parse(json: string, reviver?: Reviver, removesComments?: boolean
  * @param replacer A function that transforms the results or an array of strings and numbers that acts as a approved list for selecting the object properties that will be stringified.
  * @param space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
  */
-export function stringify(value: unknown, replacer?: ((key: string, value: unknown) => unknown) | Array<number | string> | null, space?: string | number): string;
+export function stringify(
+  value: unknown,
+  replacer?: (
+    (key: string, value: unknown) => unknown
+  ) | Array<number | string> | null,
+  space?: string | number
+): string
 
 
-export function tokenize(input: string, config?: TokenizeOptions): Token[];
+export function tokenize(input: string, config?: TokenizeOptions): Token[]
 
 export interface Token {
-  type: string;
-  value: string;
+  type: string
+  value: string
 }
 
 export interface TokenizeOptions {
-  tolerant?: boolean;
-  range?: boolean;
-  loc?: boolean;
-  comment?: boolean;
+  tolerant?: boolean
+  range?: boolean
+  loc?: boolean
+  comment?: boolean
 }
 
-export function assign<TTarget, TSource>(target: TTarget, source: TSource, keys?: readonly (keyof TSource)[]): unknown;
+export function assign<TTarget, TSource>(
+  target: TTarget,
+  source: TSource,
+  keys?: readonly (keyof TSource)[]
+): TTarget

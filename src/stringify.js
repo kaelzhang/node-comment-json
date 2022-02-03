@@ -96,7 +96,6 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
     return prev + delimiter + comment_stringify(value, is_line_comment)
   }, EMPTY)
 
-
   return display_block
   // line comment should always end with a LF
   || is_line_comment
