@@ -1,5 +1,10 @@
 const hasOwnProperty = require('has-own-prop')
-const {isObject, isArray} = require('core-util-is')
+const {
+  isObject,
+  isArray,
+  isString,
+  isNumber
+} = require('core-util-is')
 
 const PREFIX_BEFORE = 'before'
 const PREFIX_AFTER_PROP = 'after-prop'
@@ -105,6 +110,10 @@ const assign_non_prop_comments = (target, source) => {
 // Assign keys and comments
 const assign = (target, source, keys) => {
   keys.forEach(key => {
+    if (!isString(key) && !isNumber(key)) {
+      return
+    }
+
     if (!hasOwnProperty(source, key)) {
       return
     }

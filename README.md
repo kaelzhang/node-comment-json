@@ -128,7 +128,7 @@ parse(text, reviver? = null, remove_comments? = false)
 - **reviver?** `Function() | null` Default to `null`. It acts the same as the second parameter of [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse). If a function, prescribes how the value originally produced by parsing is transformed, before being returned.
 - **remove_comments?** `boolean = false` If true, the comments won't be maintained, which is often used when we want to get a clean object.
 
-Returns `object | string | number | boolean | null` corresponding to the given JSON text.
+Returns `CommentJSONValue` (`object | string | number | boolean | null`) corresponding to the given JSON text.
 
 If the `content` is:
 

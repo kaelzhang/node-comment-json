@@ -91,5 +91,7 @@ export interface TokenizeOptions {
 export function assign<TTarget, TSource>(
   target: TTarget,
   source: TSource,
-  keys?: readonly (keyof TSource)[]
+  // Although it actually accepts more key types and filters then`,
+  // we set the type of `keys` stricter
+  keys?: readonly (number | string)[]
 ): TTarget

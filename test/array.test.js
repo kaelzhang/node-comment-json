@@ -299,7 +299,6 @@ const CASES = [
   ],
 ]
 
-
 CASES.forEach(([d, a, run, e, s]) => {
   test(d, t => {
     const parsed = parse(a)

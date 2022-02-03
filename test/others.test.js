@@ -1,6 +1,25 @@
 const test = require('ava')
+const hasOwnProperty = require('has-own-prop')
+
 const {parse, stringify, assign} = require('..')
 
+test('#33: assign: should ignore symbol keys', t => {
+  const str = `{
+    // a
+    "a": 1
+  }`
+
+  const parsed = parse(str)
+
+  const obj = {}
+  const key = Symbol.for('before:a')
+
+  t.is(hasOwnProperty(parsed, key), true)
+
+  assign(obj, parsed, [key])
+
+  t.is(obj[key])
+})
 
 test('#17: has trailing comma and comment after comma', t => {
   const str = `{

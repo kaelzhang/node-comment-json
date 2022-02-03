@@ -2,7 +2,6 @@ const test = require('ava')
 
 const parser = require('..')
 
-
 const cases = [
   {
     d: '#21: introduce `after:prop` symbol',
