@@ -5,7 +5,9 @@ import {
 
   CommentArray,
   CommentObject,
-  assign
+  assign,
+  CommentDescriptor,
+  CommentSymbol
 } from '../..'
 
 const assert = (test: boolean, message: string): void => {
@@ -33,3 +35,14 @@ assert(stringify(obj, null, 2) === `{
 }`, 'assign')
 
 assert(Array.isArray(tokenize(str)), 'tokenize')
+
+const comment = "this is a comment"
+let commentDescriptor: CommentDescriptor = `before:0`
+
+const commentSrc = `[
+  //${comment}
+  "bar"
+]`
+
+assert((parse(commentSrc) as CommentArray<string>)[Symbol.for(commentDescriptor) as CommentSymbol][0].value === comment, 'comment parse')
+commentDescriptor = "before";
