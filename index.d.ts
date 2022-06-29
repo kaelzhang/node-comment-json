@@ -5,7 +5,7 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
 export class CommentArray<TValue> extends Array<TValue> {
-  [key: symbol]: CommentToken
+  [key: symbol]: CommentToken[]
 }
 
 export type CommentJSONValue = number
@@ -17,7 +17,7 @@ export type CommentJSONValue = number
 
 export interface CommentObject {
   [key: string]: CommentJSONValue
-  [key: symbol]: CommentToken
+  [key: symbol]: CommentToken[]
 }
 
 export interface CommentToken {
