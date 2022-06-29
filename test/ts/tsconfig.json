@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "module": "CommonJS",
+        "target": "ES2015"
+    },
+    "include": [
+        "./test-ts.ts"
+    ]
+}
