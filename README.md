@@ -298,6 +298,22 @@ interface Location {
 }
 ```
 
+### Query comments in TypeScript
+
+`comment-json` provides a `symbol`-type called `CommentSymbol` which can be used for querying comments.  
+Furthermore, a type `CommentDescriptor` is provided for enforcing properly formatted symbol names:
+
+```ts
+import { CommentDescriptor, CommentSymbol, parse } from "comment-json"
+
+const parsed = parse(`{ /* test */ "foo": "bar" }`)
+const symbolName: CommentDescriptor: "before-prop:foo"; // typescript only allows properly formatted symbol names here
+console.log(parsed[Symbol.for(symbolName) as CommentSymbol][0].value)
+```
+
+In this example, casting to `Symbol.for(symbolName)` to `CommentSymbol` is mandatory.
+Otherwise, TypeScript won't detect that you're trying to query comments.
+
 ### Parse into an object without comments
 
 ```js
