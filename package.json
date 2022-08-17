@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npm run test:only",
     "test:only": "npm run test:ts && npm run test:node",
-    "test:ts": "tsc test/ts/test-ts.ts && node test/ts/test-ts.js",
+    "test:ts": "tsc -b test/ts/tsconfig.build.json && node test/ts/test-ts.js",
     "test:node": "NODE_DEBUG=comment-json nyc ava --timeout=10s --verbose",
     "test:dev": "npm run test:only && npm run report:dev",
     "lint": "eslint .",

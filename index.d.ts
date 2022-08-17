@@ -4,8 +4,23 @@
 // Definitions by: Jason Dent <https://github.com/Jason3S>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
+declare const commentSymbol: unique symbol
+
+export type CommentPrefix = 'before'
+  | 'after-prop'
+  | 'after-colon'
+  | 'after-value'
+  | 'after'
+
+export type CommentDescriptor = `${CommentPrefix}:${string}`
+  | 'before'
+  | 'before-all'
+  | 'after-all'
+
+export type CommentSymbol = typeof commentSymbol
+
 export class CommentArray<TValue> extends Array<TValue> {
-  [key: symbol]: CommentToken
+  [commentSymbol]: CommentToken[]
 }
 
 export type CommentJSONValue = number
@@ -17,7 +32,7 @@ export type CommentJSONValue = number
 
 export interface CommentObject {
   [key: string]: CommentJSONValue
-  [key: symbol]: CommentToken
+  [commentSymbol]: CommentToken[]
 }
 
 export interface CommentToken {
