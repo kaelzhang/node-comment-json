@@ -92,7 +92,7 @@ It is a common use case to sort the keys of a JSON file
 ```js
 const parsed = parse(`{
   // b
-  "b": 2
+  "b": 2,
   // a
   "a": 1
 }`)
@@ -305,14 +305,14 @@ Furthermore, a type `CommentDescriptor` is provided for enforcing properly forma
 
 ```ts
 import {
-  CommentDescriptor, CommentSymbol, parse
+  CommentDescriptor, CommentSymbol, parse, CommentArray
 } from 'comment-json'
 
 const parsed = parse(`{ /* test */ "foo": "bar" }`)
  // typescript only allows properly formatted symbol names here
-const symbolName: CommentDescriptor: 'before-prop:foo'
+const symbolName: CommentDescriptor = 'before:foo'
 
-console.log(parsed[Symbol.for(symbolName) as CommentSymbol][0].value)
+console.log((parsed as CommentArray<string>)[Symbol.for(symbolName) as CommentSymbol][0].value)
 ```
 
 In this example, casting to `Symbol.for(symbolName)` to `CommentSymbol` is mandatory.
