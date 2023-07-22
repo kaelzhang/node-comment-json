@@ -107,6 +107,51 @@ const assign_non_prop_comments = (target, source) => {
   })
 }
 
+const deepAssignCopy=function(target,source,keys){
+  keys.forEach(key => {
+    if (!isString(key) && !isNumber(key)) {
+      return
+    }
+
+    if (!hasOwnProperty(source, key)) {
+      return
+    }
+    if(isObject(source[key])){
+      target[key]=deepAssign(target,source)
+    }else{
+      target[key] = source[key]
+
+    }
+    copy_comments(target, source, key, key)
+  })
+
+  return target
+}
+
+const deepAssign=function(target,source,keys){
+  if (!isObject(target)) {
+    throw new TypeError('Cannot convert undefined or null to object')
+  }
+
+  if (!isObject(source)) {
+    return target
+  }
+
+  if (keys === UNDEFINED) {
+    keys = Object.keys(source)
+    // We assign non-property comments
+    // if argument `keys` is not specified
+    assign_non_prop_comments(target, source)
+  } else if (!isArray(keys)) {
+    throw new TypeError('keys must be array or undefined')
+  } else if (keys.length === 0) {
+    // Or argument `keys` is an empty array
+    assign_non_prop_comments(target, source)
+  }
+
+  return assign(target, source, keys)
+}
+
 // Assign keys and comments
 const assign = (target, source, keys) => {
   keys.forEach(key => {
@@ -154,6 +199,7 @@ module.exports = {
   copy_comments,
   swap_comments,
   assign_non_prop_comments,
+  deepAssign,
 
   assign (target, source, keys) {
     if (!isObject(target)) {

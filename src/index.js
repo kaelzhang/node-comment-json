@@ -1,7 +1,7 @@
 const {parse, tokenize} = require('./parse')
 const stringify = require('./stringify')
 const {CommentArray} = require('./array')
-const {assign} = require('./common')
+const {assign,deepAssign} = require('./common')
 
 module.exports = {
   parse,
@@ -9,5 +9,6 @@ module.exports = {
   tokenize,
 
   CommentArray,
-  assign
+  assign,
+  deepAssign
 }

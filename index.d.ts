@@ -110,3 +110,11 @@ export function assign<TTarget, TSource>(
   // we set the type of `keys` stricter
   keys?: readonly (number | string)[]
 ): TTarget
+
+export function deepAssign<TTarget, TSource>(
+  target: TTarget,
+  source: TSource,
+  // Although it actually accepts more key types and filters then`,
+  // we set the type of `keys` stricter
+  keys?: readonly (number | string)[]
+): TTarget
