@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/kaelzhang/node-comment-json.svg?branch=master)](https://travis-ci.org/kaelzhang/node-comment-json)
+[![Build Status](https://github.com/kaelzhang/node-comment-json/actions/workflows/nodejs.yml/badge.svg)](https://github.com/kaelzhang/node-comment-json/actions/workflows/nodejs.yml)
 [![Coverage](https://codecov.io/gh/kaelzhang/node-comment-json/branch/master/graph/badge.svg)](https://codecov.io/gh/kaelzhang/node-comment-json)
 [![npm module downloads per month](http://img.shields.io/npm/dm/comment-json.svg)](https://www.npmjs.org/package/comment-json)
 <!-- optional appveyor tst
