@@ -70,7 +70,7 @@ export type Reviver = (k: number | string, v: unknown) => unknown
  */
 export function parse(
   json: string,
-  reviver?: Reviver,
+  reviver?: Reviver | null,
   removesComments?: boolean
 ): CommentJSONValue
 
