@@ -2,7 +2,8 @@
   "name": "comment-json",
   "version": "4.2.4",
   "description": "Parse and stringify JSON with comments. It will retain comments even after saved!",
-  "main": "src/index.js",
+  "main": "./src/index.js",
+  "types": "./index.d.ts",
   "scripts": {
     "test": "npm run test:only",
     "test:only": "npm run test:ts && npm run test:node",
@@ -17,8 +18,8 @@
     "report:open": "open coverage/index.html"
   },
   "files": [
-    "src/",
-    "index.d.ts"
+    "./src/",
+    "./index.d.ts"
   ],
   "repository": {
     "type": "git",
