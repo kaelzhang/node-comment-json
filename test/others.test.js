@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unresolved
 const test = require('ava')
 const hasOwnProperty = require('has-own-prop')
 
