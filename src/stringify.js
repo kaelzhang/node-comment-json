@@ -1,5 +1,5 @@
 const {
-  isObject, isFunction, isNumber, isString
+  isObject, isNumber, isString
 } = require('core-util-is')
 
 const {
@@ -263,13 +263,13 @@ function stringify (key, holder, gap) {
   let value = holder[key]
 
   // If the value has a toJSON method, call it to obtain a replacement value.
-  if (isObject(value) && isFunction(value.toJSON)) {
+  if (isObject(value) && typeof value.toJSON === 'function') {
     value = value.toJSON(key)
   }
 
   // If we were called with a replacer function, then call the replacer to
   // obtain a replacement value.
-  if (isFunction(replacer)) {
+  if (typeof replacer === 'function') {
     value = replacer.call(holder, key, value)
   }
 
@@ -344,7 +344,7 @@ module.exports = (value, replacer_, space) => {
   }
 
   // vanilla `JSON.parse` allow invalid replacer
-  if (!isFunction(replacer_) && !Array.isArray(replacer_)) {
+  if (typeof replacer_ !== 'function' && !Array.isArray(replacer_)) {
     replacer_ = null
   }
 

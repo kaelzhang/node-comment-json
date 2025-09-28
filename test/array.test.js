@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
 const test = require('ava')
 const {
-  isFunction, isObject, isString
+  isObject, isString
 } = require('core-util-is')
 const {
   parse, stringify, assign, CommentArray
@@ -305,7 +305,7 @@ CASES.forEach(([d, a, run, e, s]) => {
     const parsed = parse(a)
     const ret = run(parsed)
 
-    const expect = isFunction(e)
+    const expect = typeof e === 'function'
       ? e
       : (tt, r, str) => {
         tt.deepEqual(r, e)
