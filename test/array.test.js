@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
 const test = require('ava')
 const {
-  isFunction, isObject, isString, isArray
+  isFunction, isObject, isString
 } = require('core-util-is')
 const {
   parse, stringify, assign, CommentArray
@@ -315,7 +315,7 @@ CASES.forEach(([d, a, run, e, s]) => {
     expect(
       t,
       // Cleaned return value
-      isArray(ret)
+      Array.isArray(ret)
         // clean ret
         ? [...ret]
         : ret,

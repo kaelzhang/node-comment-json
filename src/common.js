@@ -1,6 +1,5 @@
 const {
   isObject,
-  isArray,
   isString,
   isNumber
 } = require('core-util-is')
@@ -168,7 +167,7 @@ module.exports = {
       // We assign non-property comments
       // if argument `keys` is not specified
       assign_non_prop_comments(target, source)
-    } else if (!isArray(keys)) {
+    } else if (!Array.isArray(keys)) {
       throw new TypeError('keys must be array or undefined')
     } else if (keys.length === 0) {
       // Or argument `keys` is an empty array

@@ -1,5 +1,5 @@
 const {
-  isArray, isObject, isFunction, isNumber, isString
+  isObject, isFunction, isNumber, isString
 } = require('core-util-is')
 
 const {
@@ -198,7 +198,7 @@ const object_stringify = (value, gap) => {
   let after_comma = EMPTY
   let first = true
 
-  const keys = isArray(replacer)
+  const keys = Array.isArray(replacer)
     ? replacer
     : Object.keys(value)
 
@@ -292,7 +292,7 @@ function stringify (key, holder, gap) {
   // If the type is 'object', we might be dealing with an object or an array or
   // null.
   case 'object':
-    return isArray(value)
+    return Array.isArray(value)
       ? array_stringify(value, gap)
       : object_stringify(value, gap)
 
@@ -344,7 +344,7 @@ module.exports = (value, replacer_, space) => {
   }
 
   // vanilla `JSON.parse` allow invalid replacer
-  if (!isFunction(replacer_) && !isArray(replacer_)) {
+  if (!isFunction(replacer_) && !Array.isArray(replacer_)) {
     replacer_ = null
   }
 
