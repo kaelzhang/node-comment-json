@@ -1,6 +1,4 @@
-const {
-  isObject, isString
-} = require('core-util-is')
+const {isObject} = require('core-util-is')
 
 const {
   PREFIX_BEFORE_ALL,
@@ -303,7 +301,7 @@ function stringify (key, holder, gap) {
   }
 }
 
-const get_indent = space => isString(space)
+const get_indent = space => typeof space === 'string'
   // If the space parameter is a string, it will be used as the indent string.
   ? space
   : typeof space === 'number'

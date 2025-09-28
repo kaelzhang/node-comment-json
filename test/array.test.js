@@ -1,8 +1,6 @@
 // eslint-disable-next-line import/no-unresolved
 const test = require('ava')
-const {
-  isObject, isString
-} = require('core-util-is')
+const {isObject} = require('core-util-is')
 const {
   parse, stringify, assign, CommentArray
 } = require('..')
@@ -47,7 +45,7 @@ const texpect = (
     t.is(r, ret)
   }
 
-  if (isString(rr)) {
+  if (typeof rr === 'string') {
     t.is(rr, str)
   } else {
     t.is(st(rr), str)

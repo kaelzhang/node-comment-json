@@ -1,7 +1,4 @@
-const {
-  isObject,
-  isString
-} = require('core-util-is')
+const {isObject} = require('core-util-is')
 
 const PREFIX_BEFORE = 'before'
 const PREFIX_AFTER_PROP = 'after-prop'
@@ -107,7 +104,7 @@ const assign_non_prop_comments = (target, source) => {
 // Assign keys and comments
 const assign = (target, source, keys) => {
   keys.forEach(key => {
-    if (!isString(key) && typeof key !== 'number') {
+    if (typeof key !== 'string' && typeof key !== 'number') {
       return
     }
 

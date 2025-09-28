@@ -2,7 +2,6 @@
 const test = require('ava')
 const {resolve} = require('test-fixture')()
 const fs = require('fs')
-const {isString} = require('core-util-is')
 
 const {parse, stringify} = require('..')
 
@@ -111,7 +110,7 @@ OLD_CASES.forEach(name => {
     3,
     null
   ].forEach(space => {
-    const s = isString(space)
+    const s = typeof space === 'string'
       ? space.length
       : space
 
