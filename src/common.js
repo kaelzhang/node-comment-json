@@ -1,4 +1,3 @@
-const hasOwnProperty = require('has-own-prop')
 const {
   isObject,
   isArray,
@@ -52,7 +51,7 @@ const copy_comments_by_kind = (
   target, source, target_key, source_key, prefix, remove_source
 ) => {
   const source_prop = symbol(prefix, source_key)
-  if (!hasOwnProperty(source, source_prop)) {
+  if (!Object.hasOwn(source, source_prop)) {
     return
   }
 
@@ -84,7 +83,7 @@ const swap_comments = (array, from, to) => {
 
   SYMBOL_PREFIXES.forEach(prefix => {
     const target_prop = symbol(prefix, to)
-    if (!hasOwnProperty(array, target_prop)) {
+    if (!Object.hasOwn(array, target_prop)) {
       copy_comments_by_kind(array, array, to, from, prefix, true)
       return
     }
@@ -114,7 +113,7 @@ const assign = (target, source, keys) => {
       return
     }
 
-    if (!hasOwnProperty(source, key)) {
+    if (!Object.hasOwn(source, key)) {
       return
     }
 

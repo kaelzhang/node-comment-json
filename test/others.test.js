@@ -1,6 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
 const test = require('ava')
-const hasOwnProperty = require('has-own-prop')
 
 const {parse, stringify, assign} = require('..')
 
@@ -15,7 +14,7 @@ test('#33: assign: should ignore symbol keys', t => {
   const obj = {}
   const key = Symbol.for('before:a')
 
-  t.is(hasOwnProperty(parsed, key), true)
+  t.is(Object.hasOwn(parsed, key), true)
 
   assign(obj, parsed, [key])
 

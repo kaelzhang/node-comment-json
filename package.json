@@ -63,7 +63,6 @@
   "dependencies": {
     "array-timsort": "^1.0.3",
     "core-util-is": "^1.0.3",
-    "esprima": "^4.0.1",
-    "has-own-prop": "^2.0.0"
+    "esprima": "^4.0.1"
   }
 }
