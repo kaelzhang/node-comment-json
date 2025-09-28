@@ -37,18 +37,19 @@ export interface CommentObject {
 
 export interface CommentToken {
   type: 'BlockComment' | 'LineComment'
-  // The content of the comment, including whitespaces and line breaks
+  /** The content of the comment, including whitespaces and line breaks */
   value: string
-  // If the start location is the same line as the previous token,
-  // then `inline` is `true`
+  /**
+   * If the start location is the same line as the previous token,
+   * then `inline` is `true`
+   */
   inline: boolean
-  // But pay attention that,
-  // locations will NOT be maintained when stringified
+  /* But pay attention that, locations will NOT be maintained when stringified */
   loc: CommentLocation
 }
 
 export interface CommentLocation {
-  // The start location begins at the `//` or `/*` symbol
+  /** The start location begins at the `//` or `/*` symbol */
   start: Location
   // The end location of multi-line comment ends at the `*/` symbol
   end: Location
