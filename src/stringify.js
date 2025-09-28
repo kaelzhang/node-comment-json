@@ -1,5 +1,5 @@
 const {
-  isObject, isNumber, isString
+  isObject, isString
 } = require('core-util-is')
 
 const {
@@ -306,7 +306,7 @@ function stringify (key, holder, gap) {
 const get_indent = space => isString(space)
   // If the space parameter is a string, it will be used as the indent string.
   ? space
-  : isNumber(space)
+  : typeof space === 'number'
     ? SPACE.repeat(space)
     : EMPTY
 
