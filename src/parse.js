@@ -37,6 +37,7 @@ const tokenize = code => esprima.tokenize(code, {
   loc: true
 })
 
+let current_code
 const previous_hosts = []
 let comments_host = null
 let unassigned_comments = null
@@ -53,6 +54,7 @@ let index
 let reviver = null
 
 const clean = () => {
+  current_code = UNDEFINED
   previous_props.length =
   previous_hosts.length = 0
 
@@ -71,6 +73,8 @@ const free = () => {
   last =
   current =
   reviver = null
+
+  current_code = UNDEFINED
 }
 
 const symbolFor = prefix => Symbol.for(
@@ -84,7 +88,7 @@ const transform = (k, v) => reviver
   : v
 
 const unexpected = () => {
-  const error = new SyntaxError(`Unexpected token ${current.value.slice(0, 1)}`)
+  const error = new SyntaxError(`Unexpected token '${current.value.slice(0, 1)}', "${current_code}" is not valid JSON`)
   Object.assign(error, current.loc.start)
 
   throw error
@@ -399,6 +403,7 @@ const parse = (code, rev, no_comments) => {
   // Clean variables in closure
   clean()
 
+  current_code = code
   tokens = tokenize(code)
   reviver = rev
   remove_comments = no_comments
