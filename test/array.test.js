@@ -1,6 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
 const test = require('ava')
-const {isObject} = require('core-util-is')
 const {
   parse, stringify, assign, CommentArray
 } = require('..')
@@ -39,7 +38,7 @@ const texpect = (
   // real return value
   rr
 ) => {
-  if (isObject(ret)) {
+  if (typeof ret === 'object' && ret !== null) {
     t.deepEqual(r, ret)
   } else {
     t.is(r, ret)

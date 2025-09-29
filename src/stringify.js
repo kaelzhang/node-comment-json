@@ -1,5 +1,3 @@
-const {isObject} = require('core-util-is')
-
 const {
   PREFIX_BEFORE_ALL,
   PREFIX_BEFORE,
@@ -17,7 +15,9 @@ const {
   COMMA,
   EMPTY,
 
-  UNDEFINED
+  UNDEFINED,
+
+  is_object
 } = require('./common')
 
 // eslint-disable-next-line no-control-regex, no-misleading-character-class
@@ -261,7 +261,7 @@ function stringify (key, holder, gap) {
   let value = holder[key]
 
   // If the value has a toJSON method, call it to obtain a replacement value.
-  if (isObject(value) && typeof value.toJSON === 'function') {
+  if (is_object(value) && typeof value.toJSON === 'function') {
     value = value.toJSON(key)
   }
 
@@ -355,7 +355,7 @@ module.exports = (value, replacer_, space) => {
 
   clean()
 
-  return isObject(value)
+  return is_object(value)
     ? process_comments(value, PREFIX_BEFORE_ALL, EMPTY, true).trimLeft()
       + str
       + process_comments(value, PREFIX_AFTER_ALL, EMPTY).trimRight()
