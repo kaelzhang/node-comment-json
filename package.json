@@ -58,7 +58,7 @@
     "eslint-plugin-import": "^2.25.4",
     "nyc": "^15.1.0",
     "test-fixture": "^2.4.1",
-    "typescript": "^4.5.5"
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "array-timsort": "^1.0.3",
