@@ -44,7 +44,7 @@ const define = (target, key, value) => Object.defineProperty(target, key, {
  * @param {unknown} v
  * @returns {v is NonNullable<object>}
  */
-const is_object = v => typeof v === 'object' && v !== null;
+const is_object = v => typeof v === 'object' && v !== null
 
 const copy_comments_by_kind = (
   target, source, target_key, source_key, prefix, remove_source
