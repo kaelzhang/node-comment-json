@@ -95,6 +95,7 @@ each(SUBJECTS, REPLACERS, SPACES, (subject, replacer, space, desc, i) => {
 })
 
 const OLD_CASES = [
+  'block-comment',
   'deep',
   'duplex',
   'indent',
@@ -120,6 +121,7 @@ OLD_CASES.forEach(name => {
       const file = resolve(filename)
       const content = fs.readFileSync(file).toString().trim()
       const parsed = parse(content)
+
       const str = stringify(parsed, null, space)
 
       t.is(str, content)

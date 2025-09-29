@@ -91,6 +91,8 @@ const unexpected = () => {
   const error = new SyntaxError(`Unexpected token '${current.value.slice(0, 1)}', "${current_code}" is not valid JSON`)
   Object.assign(error, current.loc.start)
 
+  free()
+
   throw error
 }
 
@@ -103,6 +105,8 @@ const unexpected_end = () => {
       line: 1,
       column: 0
     })
+
+  free()
 
   throw error
 }

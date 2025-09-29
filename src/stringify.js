@@ -358,7 +358,7 @@ module.exports = (value, replacer_, space) => {
   clean()
 
   return isObject(value)
-    ? process_comments(value, PREFIX_BEFORE_ALL, EMPTY).trimLeft()
+    ? process_comments(value, PREFIX_BEFORE_ALL, EMPTY, true).trimLeft()
       + str
       + process_comments(value, PREFIX_AFTER_ALL, EMPTY).trimRight()
     : str
