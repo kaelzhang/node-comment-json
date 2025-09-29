@@ -62,7 +62,6 @@
   },
   "dependencies": {
     "array-timsort": "^1.0.3",
-    "core-util-is": "^1.0.3",
     "esprima": "^4.0.1"
   }
 }
