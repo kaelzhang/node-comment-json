@@ -1,7 +1,6 @@
 const {
   isArray, isObject, isFunction, isNumber, isString
 } = require('core-util-is')
-const repeat = require('repeat-string')
 
 const {
   PREFIX_BEFORE_ALL,
@@ -308,7 +307,7 @@ const get_indent = space => isString(space)
   // If the space parameter is a string, it will be used as the indent string.
   ? space
   : isNumber(space)
-    ? repeat(SPACE, space)
+    ? SPACE.repeat(space)
     : EMPTY
 
 const {toString} = Object.prototype
