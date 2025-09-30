@@ -2,7 +2,6 @@
 const test = require('ava')
 const {resolve} = require('test-fixture')()
 const fs = require('fs')
-const {isFunction, isString} = require('core-util-is')
 
 const {parse, stringify} = require('..')
 
@@ -69,7 +68,7 @@ const each = (subjects, replacers, spaces, iterator) => {
       spaces.forEach((space, iii) => {
         const desc = [subject, replacer, space]
         .map(s =>
-          isFunction(s)
+          typeof s === 'function'
             ? 'replacer'
             : JSON.stringify(s)
         )
@@ -111,7 +110,7 @@ OLD_CASES.forEach(name => {
     3,
     null
   ].forEach(space => {
-    const s = isString(space)
+    const s = typeof space === 'string'
       ? space.length
       : space
 

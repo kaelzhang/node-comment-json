@@ -1,8 +1,4 @@
 const {
-  isArray, isObject, isFunction, isNumber, isString
-} = require('core-util-is')
-
-const {
   PREFIX_BEFORE_ALL,
   PREFIX_BEFORE,
   PREFIX_AFTER_PROP,
@@ -19,7 +15,9 @@ const {
   COMMA,
   EMPTY,
 
-  UNDEFINED
+  UNDEFINED,
+
+  is_object
 } = require('./common')
 
 // eslint-disable-next-line no-control-regex, no-misleading-character-class
@@ -198,7 +196,7 @@ const object_stringify = (value, gap) => {
   let after_comma = EMPTY
   let first = true
 
-  const keys = isArray(replacer)
+  const keys = Array.isArray(replacer)
     ? replacer
     : Object.keys(value)
 
@@ -263,13 +261,13 @@ function stringify (key, holder, gap) {
   let value = holder[key]
 
   // If the value has a toJSON method, call it to obtain a replacement value.
-  if (isObject(value) && isFunction(value.toJSON)) {
+  if (is_object(value) && typeof value.toJSON === 'function') {
     value = value.toJSON(key)
   }
 
   // If we were called with a replacer function, then call the replacer to
   // obtain a replacement value.
-  if (isFunction(replacer)) {
+  if (typeof replacer === 'function') {
     value = replacer.call(holder, key, value)
   }
 
@@ -292,7 +290,7 @@ function stringify (key, holder, gap) {
   // If the type is 'object', we might be dealing with an object or an array or
   // null.
   case 'object':
-    return isArray(value)
+    return Array.isArray(value)
       ? array_stringify(value, gap)
       : object_stringify(value, gap)
 
@@ -303,10 +301,10 @@ function stringify (key, holder, gap) {
   }
 }
 
-const get_indent = space => isString(space)
+const get_indent = space => typeof space === 'string'
   // If the space parameter is a string, it will be used as the indent string.
   ? space
-  : isNumber(space)
+  : typeof space === 'number'
     ? SPACE.repeat(space)
     : EMPTY
 
@@ -344,7 +342,7 @@ module.exports = (value, replacer_, space) => {
   }
 
   // vanilla `JSON.parse` allow invalid replacer
-  if (!isFunction(replacer_) && !isArray(replacer_)) {
+  if (typeof replacer_ !== 'function' && !Array.isArray(replacer_)) {
     replacer_ = null
   }
 
@@ -357,7 +355,7 @@ module.exports = (value, replacer_, space) => {
 
   clean()
 
-  return isObject(value)
+  return is_object(value)
     ? process_comments(value, PREFIX_BEFORE_ALL, EMPTY, true).trimLeft()
       + str
       + process_comments(value, PREFIX_AFTER_ALL, EMPTY).trimRight()
