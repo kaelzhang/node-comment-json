@@ -96,9 +96,7 @@ const run = (subjects, replacers, spaces) => {
   })
 }
 
-
 run(SUBJECTS, REPLACERS, SPACES)
-
 
 const SUBJECTS_WITH_BIGINT = [
   BigInt(9007199254740993),
@@ -109,7 +107,6 @@ const SUBJECTS_WITH_BIGINT = [
   [9007199254740993n]
 ]
 
-
 run(SUBJECTS_WITH_BIGINT, [
   (key, value) => {
     if (typeof value === 'bigint') {
@@ -119,7 +116,6 @@ run(SUBJECTS_WITH_BIGINT, [
     return value
   }
 ], SPACES)
-
 
 const OLD_CASES = [
   'block-comment',
