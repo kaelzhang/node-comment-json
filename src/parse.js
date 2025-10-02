@@ -83,9 +83,9 @@ const symbolFor = prefix => Symbol.for(
     : prefix
 )
 
-const transform = (k, v) => reviver
-  ? reviver(k, v)
-  : v
+const transform = (k, {value, context = {}}) => reviver
+  ? reviver(k, value, context)
+  : value
 
 const unexpected = () => {
   const error = new SyntaxError(`Unexpected token '${current.value.slice(0, 1)}', "${current_code}" is not valid JSON`)
@@ -370,12 +370,16 @@ function walk () {
 
   if (tt === CURLY_BRACKET_OPEN) {
     next()
-    return parse_object()
+    return {
+      value: parse_object()
+    }
   }
 
   if (tt === BRACKET_OPEN) {
     next()
-    return parse_array()
+    return {
+      value: parse_array()
+    }
   }
 
   let negative = EMPTY
@@ -388,6 +392,7 @@ function walk () {
   }
 
   let v
+  let source
 
   switch (tt) {
   case 'String':
@@ -396,8 +401,17 @@ function walk () {
   case 'Numeric':
     v = current.value
     next()
-    return JSON.parse(negative + v)
+
+    source = negative + v
+    return {
+      value: JSON.parse(source),
+      context: {
+        source
+      }
+    }
   default:
+    // => unexpected token
+    return {}
   }
 }
 
@@ -423,7 +437,7 @@ const parse = (code, rev, no_comments) => {
 
   parse_comments(PREFIX_BEFORE_ALL)
 
-  let result = walk()
+  const final = walk()
 
   parse_comments(PREFIX_AFTER_ALL)
 
@@ -431,6 +445,11 @@ const parse = (code, rev, no_comments) => {
     unexpected()
   }
 
+  // reviver
+  let result = transform('', final)
+
+  // We should run reviver before the checks below,
+  // otherwise the comment info will be lost
   if (!no_comments && result !== null) {
     if (!isObject(result)) {
       // 1 -> new Number(1)
@@ -445,9 +464,6 @@ const parse = (code, rev, no_comments) => {
   }
 
   restore_comments_host()
-
-  // reviver
-  result = transform('', result)
 
   free()
 

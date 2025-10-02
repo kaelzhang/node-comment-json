@@ -126,6 +126,7 @@ parse(text, reviver? = null, remove_comments? = false)
 
 - **text** `string` The string to parse as JSON. See the [JSON](http://json.org/) object for a description of JSON syntax.
 - **reviver?** `Function() | null` Default to `null`. It acts the same as the second parameter of [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse). If a function, prescribes how the value originally produced by parsing is transformed, before being returned.
+  - `comment-json` also passes the 3rd parameter `context` to the function `reviver`, as described in https://github.com/tc39/proposal-json-parse-with-source, which will be useful to parse a JSON string with `BigInt` values.
 - **remove_comments?** `boolean = false` If true, the comments won't be maintained, which is often used when we want to get a clean object.
 
 Returns `CommentJSONValue` (`object | string | number | boolean | null`) corresponding to the given JSON text.
@@ -590,6 +591,12 @@ And it will print:
   "foo": "bar" // comment
 }
 ```
+
+## Dealing with `BigInt`s
+
+> Advanced Section
+
+`comment-json` implements the TC39 proposal [proposal-json-parse-with-source](https://github.com/tc39/proposal-json-parse-with-source)
 
 ## License
 

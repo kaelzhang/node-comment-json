@@ -312,6 +312,25 @@ g*/ //g2
       t.is(l.value, 'l')
       t.is(l.inline, false)
     }
+  },
+  {
+    d: 'reviver for BigInt',
+    s: `{
+  // big int
+  "a":9007199254740999
+}`,
+    o: '{"a":9007199254740999}',
+    r: (k, v, {source}) => /^[0-9]+$/.test(source) ? BigInt(source) : v,
+    e (t, obj) {
+      // eslint-disable-next-line
+      t.is(obj.a, 9007199254740999n)
+
+      const [comment] = obj[Symbol.for('before:a')]
+
+      t.is(comment.value, ' big int')
+      t.is(comment.inline, false)
+      t.is(comment.type, 'LineComment')
+    }
   }
 ]
 
@@ -320,12 +339,24 @@ cases.forEach(c => {
     ? test.only
     : test
 
+  // - d: description
+  // - r: reviver
+  // - s: source
+  // - o: equivalent JSON string of s with comments removed
+  // - e: the expect function to test the result
   tt(c.d, t => {
-    c.e(t, parser.parse(c.s))
+    c.e(
+      t,
+      c.r
+        // reviver
+        ? parser.parse(c.s, c.r)
+        : parser.parse(c.s))
   })
 
   tt(`${c.d}, removes comments`, t => {
-    t.deepEqual(parser.parse(c.s, null, true), parser.parse(c.o))
+    c.r
+      ? t.deepEqual(parser.parse(c.s, c.r, true), parser.parse(c.o, c.r))
+      : t.deepEqual(parser.parse(c.s, null, true), parser.parse(c.o))
   })
 })
 
