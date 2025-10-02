@@ -598,6 +598,31 @@ And it will print:
 
 `comment-json` implements the TC39 proposal [proposal-json-parse-with-source](https://github.com/tc39/proposal-json-parse-with-source)
 
+```js
+const {parse, stringify} = require('comment-json')
+
+const parsed = parse(
+  `{"foo": 9007199254740993}`,
+  //
+  (key, value, {source}) =>
+    /^[0-9]+$/.test(source) ? BigInt(source) : value
+)
+
+console.log(parsed)
+// {
+//   "foo": 9007199254740993n
+// }
+
+stringify(parsed, (key, val) =>
+  typeof value === 'bigint'
+    // Pay attention that
+    //   JSON.rawJSON is supported in node >= 21
+    ? JSON.rawJSON(String(val)).rawJSON
+    : value
+)
+// {"foo":9007199254740993}
+```
+
 ## License
 
 [MIT](LICENSE)
