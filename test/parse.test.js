@@ -424,6 +424,12 @@ test('special: 1', t => {
 
   t.is(Number(result), 1)
   t.is(result[Symbol.for('before-all')][0].value, 'abc')
+
+  // with reviver
+  const result2 = parser.parse(`//abc\n1`, (k, v) => v)
+
+  t.is(Number(result2), 1)
+  t.is(result2[Symbol.for('before-all')][0].value, 'abc')
 })
 
 test('special: "foo"', t => {
