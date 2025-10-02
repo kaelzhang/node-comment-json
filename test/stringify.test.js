@@ -71,7 +71,7 @@ const each = (subjects, replacers, spaces, iterator) => {
         .map(s =>
           isFunction(s)
             ? 'replacer'
-            : JSON.stringify(s)
+            : JSON.stringify(s, replacer)
         )
         .join(', ')
 
@@ -83,16 +83,43 @@ const each = (subjects, replacers, spaces, iterator) => {
   })
 }
 
-each(SUBJECTS, REPLACERS, SPACES, (subject, replacer, space, desc, i) => {
-  test(`${i}: stringify: ${desc}`, t => {
-    const compare = [
-      JSON.stringify(subject, replacer, space),
-      stringify(subject, replacer, space)
-    ]
+const run = (subjects, replacers, spaces) => {
+  each(subjects, replacers, spaces, (subject, replacer, space, desc, i) => {
+    test(`${i}: stringify: ${desc}`, t => {
+      const compare = [
+        JSON.stringify(subject, replacer, space),
+        stringify(subject, replacer, space)
+      ]
 
-    t.is(...compare)
+      t.is(...compare)
+    })
   })
-})
+}
+
+
+run(SUBJECTS, REPLACERS, SPACES)
+
+
+const SUBJECTS_WITH_BIGINT = [
+  BigInt(9007199254740993),
+  9007199254740993n,
+  {
+    a: 9007199254740993n
+  },
+  [9007199254740993n]
+]
+
+
+run(SUBJECTS_WITH_BIGINT, [
+  (key, value) => {
+    if (typeof value === 'bigint') {
+      return JSON.rawJSON(String(value)).rawJSON
+    }
+
+    return value
+  }
+], SPACES)
+
 
 const OLD_CASES = [
   'block-comment',
