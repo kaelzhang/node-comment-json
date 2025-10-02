@@ -83,10 +83,8 @@ const symbolFor = prefix => Symbol.for(
     : prefix
 )
 
-const transform = (k, {value, context}) => reviver
-  ? context
-    ? reviver(k, value, context)
-    : reviver(k, value)
+const transform = (k, {value, context = {}}) => reviver
+  ? reviver(k, value, context)
   : value
 
 const unexpected = () => {
@@ -450,6 +448,8 @@ const parse = (code, rev, no_comments) => {
   // reviver
   let result = transform('', final)
 
+  // We should run reviver before the checks below,
+  // otherwise the comment info will be lost
   if (!no_comments && result !== null) {
     if (!isObject(result)) {
       // 1 -> new Number(1)

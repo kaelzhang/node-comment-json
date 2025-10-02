@@ -1,4 +1,8 @@
 module.exports = {
+  parserOptions: {
+    // To support BigInt
+    ecmaVersion: 2020
+  },
   extends: require.resolve('@ostai/eslint-config'),
   rules: {
     'no-underscore-dangle': 0,
