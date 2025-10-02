@@ -603,7 +603,7 @@ const {parse, stringify} = require('comment-json')
 
 const parsed = parse(
   `{"foo": 9007199254740993}`,
-  //
+  // The reviver function now has a 3rd param that contains the string source.
   (key, value, {source}) =>
     /^[0-9]+$/.test(source) ? BigInt(source) : value
 )
