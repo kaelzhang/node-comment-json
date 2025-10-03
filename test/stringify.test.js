@@ -110,7 +110,7 @@ const SUBJECTS_WITH_BIGINT = [
 run(SUBJECTS_WITH_BIGINT, [
   (key, value) => {
     if (typeof value === 'bigint') {
-      return JSON.rawJSON(String(value)).rawJSON
+      return JSON.rawJSON(String(value))
     }
 
     return value

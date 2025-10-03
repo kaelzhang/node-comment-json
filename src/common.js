@@ -2,7 +2,8 @@ const {
   isObject,
   isArray,
   isString,
-  isNumber
+  isNumber,
+  isFunction
 } = require('core-util-is')
 
 const PREFIX_BEFORE = 'before'
@@ -124,6 +125,13 @@ const assign = (target, source, keys) => {
   return target
 }
 
+const is_raw_json = isFunction(JSON.isRawJSON)
+  // For backward compatibility,
+  // since JSON.isRawJSON is not supported in node < 21
+  ? JSON.isRawJSON
+  // istanbul ignore next
+  : () => false
+
 module.exports = {
   SYMBOL_PREFIXES,
 
@@ -153,6 +161,8 @@ module.exports = {
   copy_comments,
   swap_comments,
   assign_non_prop_comments,
+
+  is_raw_json,
 
   assign (target, source, keys) {
     if (!isObject(target)) {

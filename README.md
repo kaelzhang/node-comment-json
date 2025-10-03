@@ -617,7 +617,7 @@ stringify(parsed, (key, val) =>
   typeof value === 'bigint'
     // Pay attention that
     //   JSON.rawJSON is supported in node >= 21
-    ? JSON.rawJSON(String(val)).rawJSON
+    ? JSON.rawJSON(String(val))
     : value
 )
 // {"foo":9007199254740993}

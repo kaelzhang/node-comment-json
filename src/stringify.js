@@ -19,7 +19,9 @@ const {
   COMMA,
   EMPTY,
 
-  UNDEFINED
+  UNDEFINED,
+
+  is_raw_json
 } = require('./common')
 
 // eslint-disable-next-line no-control-regex, no-misleading-character-class
@@ -292,6 +294,10 @@ function stringify (key, holder, gap) {
   // If the type is 'object', we might be dealing with an object or an array or
   // null.
   case 'object':
+    if (is_raw_json(value)) {
+      return value.rawJSON
+    }
+
     return isArray(value)
       ? array_stringify(value, gap)
       : object_stringify(value, gap)
