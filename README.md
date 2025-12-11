@@ -31,6 +31,7 @@ The usage of `comment-json` is exactly the same as the vanilla [`JSON`](https://
   - [stringify](#stringify)
   - [assign](#assigntarget-object-source-object-keys-array)
   - [moveComments](#movecommentssource-object-target-object-from-object-to-object-override-boolean)
+  - [removeComments](#removecommentstarget-object-location-object)
   - [CommentArray](#commentarray)
 - [Change Logs](https://github.com/kaelzhang/node-comment-json/releases)
 
@@ -74,7 +75,8 @@ const {
   parse,
   stringify,
   assign,
-  moveComments
+  moveComments,
+  removeComments
 } = require('comment-json')
 const fs = require('fs')
 
@@ -506,10 +508,10 @@ Symbol.for('after-all')
 - **source** `object` The source object containing comments to move.
 - **target?** `object` The target object to move comments to. If not provided, defaults to source (move within same object).
 - **from** `object` The source comment location.
-  - **from.kind** `CommentPrefix` The kind of comment prefix (e.g., 'before', 'after', 'before-all', etc.).
+  - **from.where** `CommentPrefix` The comment position (e.g., 'before', 'after', 'before-all', etc.).
   - **from.key?** `string` The property key for property-specific comments. Omit for non-property comments.
 - **to** `object` The target comment location.
-  - **to.kind** `CommentPrefix` The kind of comment prefix (e.g., 'before', 'after', 'before-all', etc.).
+  - **to.where** `CommentPrefix` The comment position (e.g., 'before', 'after', 'before-all', etc.).
   - **to.key?** `string` The property key for property-specific comments. Omit for non-property comments.
 - **override?** `boolean = false` Whether to override existing comments at the target location. If false, comments will be appended.
 
@@ -525,8 +527,8 @@ const obj = parse(`{
 
 // Move comment from `after 'foo'` to `after`
 moveComments(obj, obj,
-  { kind: 'after-value', key: 'foo' },
-  { kind: 'after' }
+  { where: 'after', key: 'foo' },
+  { where: 'after' }
 )
 
 obj.baz = 3
@@ -612,6 +614,57 @@ moveComments(obj, obj,
   { kind: 'before', key: 'foo' },
   true // override existing comments
 )
+```
+
+## removeComments(target: object, location: object)
+
+- **target** `object` The target object to remove comments from.
+- **location** `object` The comment location to remove.
+  - **location.where** `CommentPrefix` The comment position (e.g., 'before', 'after', 'before-all', etc.).
+  - **location.key?** `string` The property key for property-specific comments. Omit for non-property comments.
+
+This method is used to remove comments from a specific location within objects. It's useful for cleaning up comments or removing unwanted comment annotations.
+
+### Basic usage
+
+```js
+const {parse, stringify, removeComments} = require('comment-json')
+
+const obj = parse(`{
+  // comment before foo
+  "foo": 1, // comment after foo
+  "bar": 2
+}`)
+
+// Remove comment before 'foo'
+removeComments(obj, { where: 'before', key: 'foo' })
+
+console.log(stringify(obj, null, 2))
+// {
+//   "foo": 1, // comment after foo
+//   "bar": 2
+// }
+```
+
+### Removing non-property comments
+
+```js
+const obj = parse(`// top comment
+{
+  "foo": 1
+}
+// bottom comment`)
+
+// Remove top comment
+removeComments(obj, { where: 'before-all' })
+
+// Remove bottom comment
+removeComments(obj, { where: 'after-all' })
+
+console.log(stringify(obj, null, 2))
+// {
+//   "foo": 1
+// }
 ```
 
 ## `CommentArray`

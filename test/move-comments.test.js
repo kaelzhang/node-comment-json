@@ -5,7 +5,7 @@ const {parse, stringify, moveComments} = require('..')
 
 test('moveComments: should throw TypeError if source is not an object', t => {
   const error = t.throws(() => {
-    moveComments('not an object', {}, {kind: 'before'}, {kind: 'after'})
+    moveComments('not an object', {}, {where: 'before'}, {where: 'after'})
   }, {instanceOf: TypeError})
 
   t.is(error.message, 'source must be an object')
@@ -13,7 +13,7 @@ test('moveComments: should throw TypeError if source is not an object', t => {
 
 test('moveComments: should throw TypeError if source is null', t => {
   const error = t.throws(() => {
-    moveComments(null, {}, {kind: 'before'}, {kind: 'after'})
+    moveComments(null, {}, {where: 'before'}, {where: 'after'})
   }, {instanceOf: TypeError})
 
   t.is(error.message, 'source must be an object')
@@ -21,7 +21,7 @@ test('moveComments: should throw TypeError if source is null', t => {
 
 test('moveComments: should throw TypeError if source is primitive', t => {
   const error = t.throws(() => {
-    moveComments(123, {}, {kind: 'before'}, {kind: 'after'})
+    moveComments(123, {}, {where: 'before'}, {where: 'after'})
   }, {instanceOf: TypeError})
 
   t.is(error.message, 'source must be an object')
@@ -34,8 +34,8 @@ test('moveComments: should use source as target when target is not provided', t 
 
   // Call moveComments without target parameter
   moveComments(source, null,
-    {kind: 'after', key: 'foo'},
-    {kind: 'before', key: 'foo'}
+    {where: 'after', key: 'foo'},
+    {where: 'before', key: 'foo'}
   )
 
   const result = stringify(source, null, 2)
@@ -50,8 +50,8 @@ test('moveComments: should use source as target when target is undefined', t => 
 
   // Call moveComments with undefined target
   moveComments(source, undefined,
-    {kind: 'after', key: 'foo'},
-    {kind: 'before', key: 'foo'}
+    {where: 'after', key: 'foo'},
+    {where: 'before', key: 'foo'}
   )
 
   const result = stringify(source, null, 2)
@@ -66,8 +66,8 @@ test('moveComments: should return early if target is not an object after assignm
 
   // This should return early and not throw
   moveComments(source, 'not an object',
-    {kind: 'after-value', key: 'foo'},
-    {kind: 'before', key: 'foo'}
+    {where: 'after-value', key: 'foo'},
+    {where: 'before', key: 'foo'}
   )
 
   // Source should be unchanged
@@ -82,8 +82,8 @@ test('moveComments: should return early if target is null', t => {
 
   // This should return early and not throw
   moveComments(source, null,
-    {kind: 'after', key: 'foo'},
-    {kind: 'before', key: 'foo'}
+    {where: 'after', key: 'foo'},
+    {where: 'before', key: 'foo'}
   )
 
   // Source should have moved comments (because target defaults to source)
@@ -97,8 +97,8 @@ test('moveComments: should return early if source does not have the from propert
 
   // Try to move non-existent comment
   moveComments(source, target,
-    {kind: 'after', key: 'foo'},
-    {kind: 'before', key: 'bar'}
+    {where: 'after', key: 'foo'},
+    {where: 'before', key: 'bar'}
   )
 
   // Target should be unchanged
@@ -116,8 +116,8 @@ test('moveComments: should move comments and override existing ones when overrid
   }`)
 
   moveComments(source, target,
-    {kind: 'after', key: 'foo'},
-    {kind: 'before', key: 'bar'},
+    {where: 'after', key: 'foo'},
+    {where: 'before', key: 'bar'},
     true // override = true
   )
 
@@ -134,8 +134,8 @@ test('moveComments: should move comments to empty target location', t => {
   const target = {bar: 2}
 
   moveComments(source, target,
-    {kind: 'after', key: 'foo'},
-    {kind: 'before', key: 'bar'}
+    {where: 'after', key: 'foo'},
+    {where: 'before', key: 'bar'}
   )
 
   const result = stringify(target, null, 2)
@@ -153,8 +153,8 @@ test('moveComments: should append comments when target has existing comments and
   }`)
 
   moveComments(source, target,
-    {kind: 'after', key: 'foo'},
-    {kind: 'before', key: 'bar'},
+    {where: 'after', key: 'foo'},
+    {where: 'before', key: 'bar'},
     false // override = false (default)
   )
 
@@ -172,8 +172,8 @@ test('moveComments: should handle non-property comments (before-all)', t => {
   const target = {bar: 2}
 
   moveComments(source, target,
-    {kind: 'before-all'},
-    {kind: 'after-all'}
+    {where: 'before-all'},
+    {where: 'after-all'}
   )
 
   const result = stringify(target, null, 2)
@@ -186,8 +186,8 @@ test('moveComments: should handle property-specific comments with keys', t => {
   }`)
 
   moveComments(source, source,
-    {kind: 'after-prop', key: 'foo'},
-    {kind: 'before', key: 'foo'}
+    {where: 'after-prop', key: 'foo'},
+    {where: 'before', key: 'foo'}
   )
 
   const result = stringify(source, null, 2)
@@ -209,8 +209,8 @@ test('moveComments: should handle case where target_comments is null/undefined',
   })
 
   moveComments(source, target,
-    {kind: 'after', key: 'foo'},
-    {kind: 'before', key: 'bar'}
+    {where: 'after', key: 'foo'},
+    {where: 'before', key: 'bar'}
   )
 
   // Should not throw error even if target_comments is null
@@ -226,8 +226,8 @@ test('moveComments: should delete source comment after moving', t => {
   const target = {bar: 2}
 
   moveComments(source, target,
-    {kind: 'after', key: 'foo'},
-    {kind: 'before', key: 'bar'}
+    {where: 'after', key: 'foo'},
+    {where: 'before', key: 'bar'}
   )
 
   // Source should no longer have the comment
@@ -245,8 +245,8 @@ test('moveComments: should work with different comment types', t => {
   }`)
 
   moveComments(source, source,
-    {kind: 'after-prop', key: 'foo'},
-    {kind: 'after', key: 'foo'}
+    {where: 'after-prop', key: 'foo'},
+    {where: 'after', key: 'foo'}
   )
 
   const result = stringify(source, null, 2)
@@ -262,10 +262,10 @@ test('moveComments: integration test with multiple moves', t => {
   }`)
 
   // Move all comments to after-all
-  moveComments(obj, obj, {kind: 'before', key: 'foo'}, {kind: 'after-all'})
-  moveComments(obj, obj, {kind: 'after', key: 'foo'}, {kind: 'after-all'})
-  moveComments(obj, obj, {kind: 'before', key: 'bar'}, {kind: 'after-all'})
-  moveComments(obj, obj, {kind: 'after', key: 'bar'}, {kind: 'after-all'})
+  moveComments(obj, obj, {where: 'before', key: 'foo'}, {where: 'after-all'})
+  moveComments(obj, obj, {where: 'after', key: 'foo'}, {where: 'after-all'})
+  moveComments(obj, obj, {where: 'before', key: 'bar'}, {where: 'after-all'})
+  moveComments(obj, obj, {where: 'after', key: 'bar'}, {where: 'after-all'})
 
   const result = stringify(obj, null, 2)
 

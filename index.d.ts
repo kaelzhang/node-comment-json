@@ -170,3 +170,13 @@ export function moveComments(
   override?: boolean
 ): void
 
+/**
+ * Remove comments from a specific location
+ * @param target The target object to remove comments from
+ * @param location The comment location to remove
+ */
+export function removeComments(
+  target: CommentJSONValue,
+  location: CommentPosition
+): void
+

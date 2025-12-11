@@ -250,12 +250,12 @@ module.exports = {
    * @param {Object} [target] The target object to move comments to. If not
    *   provided, defaults to source (move within same object).
    * @param {Object} from The source comment location.
-   * @param {string} from.kind The kind of comment prefix (e.g., 'before',
+   * @param {string} from.where The comment position (e.g., 'before',
    *   'after', 'before-all', etc.).
    * @param {string} [from.key] The property key for property-specific comments.
    *   Omit for non-property comments.
    * @param {Object} to The target comment location.
-   * @param {string} to.kind The kind of comment prefix (e.g., 'before',
+   * @param {string} to.where The comment position (e.g., 'before',
    *   'after', 'before-all', etc.).
    * @param {string} [to.key] The property key for property-specific comments.
    *   Omit for non-property comments.
@@ -263,21 +263,22 @@ module.exports = {
    *   the target location. If false, comments will be appended.
    *
    * @throws {TypeError} If source is not an object.
+   * @throws {RangeError} If where parameter is invalid or incompatible with key.
    *
    * @example
    * const obj = parse('{"a": 1 // comment on a}')
    *
    * // Move comment from after 'a' to before 'a'
    * moveComments(obj, obj,
-   *   { kind: 'after', key: 'a' },
-   *   { kind: 'before', key: 'a' }
+   *   { where: 'after', key: 'a' },
+   *   { where: 'before', key: 'a' }
    * )
    *
    * @example
    * // Move non-property comment
    * moveComments(obj, obj,
-   *   { kind: 'before-all' },
-   *   { kind: 'after-all' }
+   *   { where: 'before-all' },
+   *   { where: 'after-all' }
    * )
    */
   moveComments (source, target, {
@@ -323,6 +324,29 @@ module.exports = {
     }
   },
 
+  /**
+   * Remove comments from a specific location within an object.
+   *
+   * @param {Object} target The target object to remove comments from.
+   * @param {Object} location The comment location to remove.
+   * @param {string} location.where The comment position (e.g., 'before',
+   *   'after', 'before-all', etc.).
+   * @param {string} [location.key] The property key for property-specific
+   *   comments. Omit for non-property comments.
+   *
+   * @throws {TypeError} If target is not an object.
+   * @throws {RangeError} If where parameter is invalid or incompatible with key.
+   *
+   * @example
+   * const obj = parse('{"a": 1 // comment on a}')
+   *
+   * // Remove comment after 'a'
+   * removeComments(obj, { where: 'after', key: 'a' })
+   *
+   * @example
+   * // Remove non-property comment
+   * removeComments(obj, { where: 'before-all' })
+   */
   removeComments (target, {
     where,
     key
