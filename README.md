@@ -30,6 +30,7 @@ The usage of `comment-json` is exactly the same as the vanilla [`JSON`](https://
   - [parse](#parse)
   - [stringify](#stringify)
   - [assign](#assigntarget-object-source-object-keys-array)
+  - [moveComments](#movecommentssource-object-target-object-from-object-to-object-override-boolean)
   - [CommentArray](#commentarray)
 - [Change Logs](https://github.com/kaelzhang/node-comment-json/releases)
 
@@ -72,7 +73,8 @@ package.json:
 const {
   parse,
   stringify,
-  assign
+  assign,
+  moveComments
 } = require('comment-json')
 const fs = require('fs')
 
@@ -497,6 +499,119 @@ Symbol.for('before-all')
 Symbol.for('before')
 Symbol.for('after')      // only for stringify
 Symbol.for('after-all')
+```
+
+## moveComments(source: object, target?: object, from: object, to: object, override?: boolean)
+
+- **source** `object` The source object containing comments to move.
+- **target?** `object` The target object to move comments to. If not provided, defaults to source (move within same object).
+- **from** `object` The source comment location.
+  - **from.kind** `CommentPrefix` The kind of comment prefix (e.g., 'before', 'after', 'before-all', etc.).
+  - **from.key?** `string` The property key for property-specific comments. Omit for non-property comments.
+- **to** `object` The target comment location.
+  - **to.kind** `CommentPrefix` The kind of comment prefix (e.g., 'before', 'after', 'before-all', etc.).
+  - **to.key?** `string` The property key for property-specific comments. Omit for non-property comments.
+- **override?** `boolean = false` Whether to override existing comments at the target location. If false, comments will be appended.
+
+This method is used to move comments from one location to another within objects. It's particularly useful when you need to reorganize comments or move them between different comment positions.
+
+```js
+const {parse, stringify, moveComments} = require('comment-json')
+
+const obj = parse(`{
+  "foo": 1, // comment after foo
+  "bar": 2
+}`)
+
+// Move comment from `after 'foo'` to `after`
+moveComments(obj, obj,
+  { kind: 'after-value', key: 'foo' },
+  { kind: 'after' }
+)
+
+obj.baz = 3
+
+console.log(stringify(obj, null, 2))
+// {
+//   "foo": 1,
+//   "bar": 2,
+//   "baz": 3
+// // comment after foo
+// }
+```
+
+### Moving non-property comments
+
+```js
+const obj = parse(`// top comment
+{
+  "foo": 1
+}`)
+
+// Move top comment to bottom
+moveComments(obj, obj,
+  { kind: 'before-all' },
+  { kind: 'after-all' }
+)
+
+console.log(stringify(obj, null, 2))
+// {
+//   "foo": 1
+// }
+// // top comment
+```
+
+### Moving comments between objects
+
+```js
+const source = parse(`{
+  "foo": 1 // source comment
+}`)
+
+const target = { bar: 2 }
+
+// Move comment from source to target
+moveComments(source, target,
+  { kind: 'after-value', key: 'foo' },
+  { kind: 'before', key: 'bar' }
+)
+
+console.log(stringify(target, null, 2))
+// {
+//   // source comment
+//   "bar": 2
+// }
+```
+
+### Appending vs overriding comments
+
+```js
+const obj = parse(`{
+  // existing comment
+  "foo": 1, // another comment
+  "bar": 2
+}`)
+
+// By default, comments are appended (override = false)
+moveComments(obj, obj,
+  { kind: 'after-value', key: 'foo' },
+  { kind: 'before', key: 'foo' }
+)
+
+console.log(stringify(obj, null, 2))
+// {
+//   // existing comment
+//   // another comment
+//   "foo": 1,
+//   "bar": 2
+// }
+
+// With override = true, existing comments are replaced
+moveComments(obj, obj,
+  { kind: 'before', key: 'bar' },
+  { kind: 'before', key: 'foo' },
+  true // override existing comments
+)
 ```
 
 ## `CommentArray`
