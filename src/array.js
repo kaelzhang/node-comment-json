@@ -2,7 +2,7 @@ const {isArray} = require('core-util-is')
 const {sort} = require('array-timsort')
 
 const {
-  SYMBOL_PREFIXES,
+  PROP_SYMBOL_PREFIXES,
 
   UNDEFINED,
 
@@ -68,7 +68,7 @@ const move_comments = (
 }
 
 const remove_comments = (array, key) => {
-  SYMBOL_PREFIXES.forEach(prefix => {
+  PROP_SYMBOL_PREFIXES.forEach(prefix => {
     const prop = symbol(prefix, key)
     delete array[prop]
   })

@@ -149,6 +149,11 @@ export function assign<TTarget, TSource>(
   keys?: readonly (number | string)[]
 ): TTarget
 
+interface CommentPosition {
+  where: CommentPrefix
+  key?: string
+}
+
 /**
  * Move comments from one location to another
  * @param source The source object containing comments
@@ -160,14 +165,8 @@ export function assign<TTarget, TSource>(
 export function moveComments(
   source: CommentJSONValue,
   target: CommentJSONValue | undefined,
-  from: {
-    kind: CommentPrefix,
-    key?: string
-  },
-  to: {
-    kind: CommentPrefix,
-    key?: string
-  },
+  from: CommentPosition,
+  to: CommentPosition,
   override?: boolean
 ): void
 

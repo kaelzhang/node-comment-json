@@ -23,7 +23,7 @@ const COMMA = ','
 const EMPTY = ''
 const MINUS = '-'
 
-const SYMBOL_PREFIXES = [
+const PROP_SYMBOL_PREFIXES = [
   PREFIX_BEFORE,
   PREFIX_AFTER_PROP,
   PREFIX_AFTER_COLON,
@@ -31,19 +31,36 @@ const SYMBOL_PREFIXES = [
   PREFIX_AFTER
 ]
 
-const NON_PROP_SYMBOL_KEYS = [
+const NON_PROP_SYMBOL_PREFIXES = [
   PREFIX_BEFORE,
+  PREFIX_AFTER,
   PREFIX_BEFORE_ALL,
   PREFIX_AFTER_ALL
-].map(Symbol.for)
+]
+
+const NON_PROP_SYMBOL_KEYS = NON_PROP_SYMBOL_PREFIXES.map(Symbol.for)
 
 const COLON = ':'
 const UNDEFINED = undefined
 
 const symbol = (prefix, key) => Symbol.for(prefix + COLON + key)
-const symbol_checked = (prefix, key) => key
-  ? symbol(prefix, key)
-  : Symbol.for(prefix)
+const symbol_checked = (prefix, key) => {
+  if (key) {
+    if (PROP_SYMBOL_PREFIXES.includes(prefix)) {
+      return symbol(prefix, key)
+    }
+
+    throw new RangeError(
+      `Unsupported comment position ${prefix} with key ${key}`
+    )
+  }
+
+  if (NON_PROP_SYMBOL_PREFIXES.includes(prefix)) {
+    return Symbol.for(prefix)
+  }
+
+  throw new RangeError(`Unsupported comment position ${prefix}`)
+}
 
 const define = (target, key, value) => Object.defineProperty(target, key, {
   value,
@@ -73,7 +90,7 @@ const copy_comments_by_kind = (
 const copy_comments = (
   target, source, target_key, source_key, remove_source
 ) => {
-  SYMBOL_PREFIXES.forEach(prefix => {
+  PROP_SYMBOL_PREFIXES.forEach(prefix => {
     copy_comments_by_kind(
       target, source, target_key, source_key, prefix, remove_source
     )
@@ -85,7 +102,7 @@ const swap_comments = (array, from, to) => {
     return
   }
 
-  SYMBOL_PREFIXES.forEach(prefix => {
+  PROP_SYMBOL_PREFIXES.forEach(prefix => {
     const target_prop = symbol(prefix, to)
     if (!Object.hasOwn(array, target_prop)) {
       copy_comments_by_kind(array, array, to, from, prefix, true)
@@ -136,7 +153,7 @@ const is_raw_json = isFunction(JSON.isRawJSON)
   : () => false
 
 module.exports = {
-  SYMBOL_PREFIXES,
+  PROP_SYMBOL_PREFIXES,
 
   PREFIX_BEFORE,
   PREFIX_AFTER_PROP,
@@ -264,10 +281,10 @@ module.exports = {
    * )
    */
   moveComments (source, target, {
-    kind: from_kind,
+    where: from_where,
     key: from_key
   }, {
-    kind: to_kind,
+    where: to_where,
     key: to_key
   }, override = false) {
     if (!isObject(source)) {
@@ -283,8 +300,8 @@ module.exports = {
       return
     }
 
-    const from_prop = symbol_checked(from_kind, from_key)
-    const to_prop = symbol_checked(to_kind, to_key)
+    const from_prop = symbol_checked(from_where, from_key)
+    const to_prop = symbol_checked(to_where, to_key)
 
     if (!Object.hasOwn(source, from_prop)) {
       return
@@ -304,5 +321,21 @@ module.exports = {
     if (target_comments) {
       target_comments.push(...source_comments)
     }
+  },
+
+  removeComments (target, {
+    where,
+    key
+  }) {
+    if (!isObject(target)) {
+      throw new TypeError('target must be an object')
+    }
+
+    const prop = symbol_checked(where, key)
+    if (!Object.hasOwn(target, prop)) {
+      return
+    }
+
+    delete target[prop]
   }
 }
