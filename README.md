@@ -233,7 +233,7 @@ And the value of `parsed` will be:
 }
 ```
 
-There are **EIGHT** kinds of symbol properties:
+There are **NINE** kinds of symbol properties:
 
 ```js
 // Comments before everything
@@ -265,6 +265,10 @@ Symbol.for(`after-value:${prop}`)
 // - comma(`,`)
 // - the value of property `prop` if it is the last property
 Symbol.for(`after:${prop}`)
+
+// Always at the inner end of an object or an array,
+// only used for stringification
+Symbol.for('after')
 
 // Comments after everything
 Symbol.for('after-all')
