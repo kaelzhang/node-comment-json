@@ -6,16 +6,42 @@
 
 declare const commentSymbol: unique symbol
 
-export type CommentPrefix = 'before'
-  | 'after-prop'
-  | 'after-colon'
-  | 'after-value'
-  | 'after'
+// Define comment prefix constants first to avoid magic strings
+declare const PREFIX_BEFORE: 'before'
+declare const PREFIX_AFTER_PROP: 'after-prop'
+declare const PREFIX_AFTER_COLON: 'after-colon'
+declare const PREFIX_AFTER_VALUE: 'after-value'
+declare const PREFIX_AFTER: 'after'
+declare const PREFIX_BEFORE_ALL: 'before-all'
+declare const PREFIX_AFTER_ALL: 'after-all'
 
-export type CommentDescriptor = `${CommentPrefix}:${string}`
-  | 'before'
-  | 'before-all'
-  | 'after-all'
+// Export the constants
+export {
+  PREFIX_BEFORE,
+  PREFIX_AFTER_PROP,
+  PREFIX_AFTER_COLON,
+  PREFIX_AFTER_VALUE,
+  PREFIX_AFTER,
+  PREFIX_BEFORE_ALL,
+  PREFIX_AFTER_ALL
+}
+
+// Use the constant types to build CommentPrefix
+export type PropertyCommentPrefix = typeof PREFIX_BEFORE
+  | typeof PREFIX_AFTER_PROP
+  | typeof PREFIX_AFTER_COLON
+  | typeof PREFIX_AFTER_VALUE
+  | typeof PREFIX_AFTER
+
+export type NonPropertyCommentPrefix = typeof PREFIX_BEFORE
+  | typeof PREFIX_AFTER
+  | typeof PREFIX_BEFORE_ALL
+  | typeof PREFIX_AFTER_ALL
+
+export type CommentPrefix = PropertyCommentPrefix | NonPropertyCommentPrefix
+
+export type CommentDescriptor = `${PropertyCommentPrefix}:${string}`
+  | NonPropertyCommentPrefix
 
 export type CommentSymbol = typeof commentSymbol
 
@@ -60,7 +86,11 @@ export interface Location {
   column: number
 }
 
-export type Reviver = (k: number | string, v: unknown) => unknown
+export type Reviver = (
+  k: number | string,
+  v: unknown,
+  context?: { source?: string }
+) => unknown
 
 /**
  * Converts a JavaScript Object Notation (JSON) string into an object.
@@ -104,23 +134,40 @@ export interface TokenizeOptions {
   comment?: boolean
 }
 
+/**
+ * Assign properties and comments from source to target
+ * @param target The target object to assign to
+ * @param source The source object to assign from
+ * @param keys Optional array of keys to assign. If not provided, all keys and non-property comments are assigned
+ * @returns The target object
+ */
 export function assign<TTarget, TSource>(
   target: TTarget,
   source: TSource,
-  // Although it actually accepts more key types and filters then`,
+  // Although it actually accepts more key types and filters then,
   // we set the type of `keys` stricter
   keys?: readonly (number | string)[]
 ): TTarget
 
+/**
+ * Move comments from one location to another
+ * @param source The source object containing comments
+ * @param target The target object to move comments to (defaults to source if not provided)
+ * @param from The source comment location
+ * @param to The target comment location
+ * @param override Whether to override existing comments at the target location
+ */
 export function moveComments(
   source: CommentJSONValue,
-  target: CommentJSONValue,
+  target: CommentJSONValue | undefined,
   from: {
-    kind: string,
+    kind: CommentPrefix,
     key?: string
   },
   to: {
-    kind: string,
+    kind: CommentPrefix,
     key?: string
-  }, override?: boolean
+  },
+  override?: boolean
 ): void
+
