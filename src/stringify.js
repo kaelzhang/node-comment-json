@@ -332,10 +332,33 @@ const is_primitive_object = subject => {
   return PRIMITIVE_OBJECT_TYPES.includes(str)
 }
 
-// TODO: js doc and usage examples
-
-// @param {function()|Array} replacer
-// @param {string|number} space
+/**
+ * Converts a JavaScript value to a JavaScript Object Notation (JSON) string
+ * with comments preserved.
+ *
+ * @param {*} value A JavaScript value, usually an object or array, to be
+ *   converted.
+ * @param {function|Array|null} [replacer_] A function that transforms the
+ *   results or an array of strings and numbers that acts as an approved list
+ *   for selecting the object properties that will be stringified.
+ * @param {string|number} [space] Adds indentation, white space, and line
+ *   break characters to the return-value JSON text to make it easier to read.
+ * @returns {string} A JSON string representing the given value with comments
+ *   preserved.
+ *
+ * @example
+ * const obj = parse('{"a": 1 // comment}')
+ * stringify(obj, null, 2)
+ * // Returns: '{\n  "a": 1 // comment\n}'
+ *
+ * @example
+ * // With replacer function
+ * stringify(obj, (key, value) => typeof value === 'number' ? value * 2 : value)
+ *
+ * @example
+ * // With replacer array
+ * stringify(obj, ['a', 'b']) // Only include 'a' and 'b' properties
+ */
 module.exports = (value, replacer_, space) => {
   // The stringify method takes a value and an optional replacer, and an optional
   // space parameter, and returns a JSON text. The replacer can be a function

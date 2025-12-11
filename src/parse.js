@@ -32,6 +32,17 @@ const {
   assign_non_prop_comments
 } = require('./common')
 
+/**
+ * Tokenize JSON string with comments into an array of tokens.
+ *
+ * @param {string} code The JSON string with comments to tokenize.
+ * @returns {Array} Array of token objects containing type, value, and location
+ *   information.
+ *
+ * @example
+ * const tokens = tokenize('{"a": 1 // comment}')
+ * // Returns array of tokens including comment tokens
+ */
 const tokenize = code => esprima.tokenize(code, {
   comment: true,
   loc: true
@@ -417,7 +428,35 @@ function walk () {
 
 const isObject = subject => Object(subject) === subject
 
-// TODO: js doc and usage examples
+/**
+ * Converts a JavaScript Object Notation (JSON) string with comments into an
+ * object.
+ *
+ * @param {string} code A valid JSON string with comments.
+ * @param {function} [rev] A function that transforms the results. This function
+ *   is called for each member of the object. If a member contains nested
+ *   objects, the nested objects are transformed before the parent object is.
+ * @param {boolean} [no_comments=false] If true, the comments won't be
+ *   maintained, which is often used when we want to get a clean object.
+ * @returns {*} The JavaScript object corresponding to the given JSON text with
+ *   comments preserved as symbol properties.
+ *
+ * @example
+ * const result = parse('{"a": 1 // This is a comment}')
+ * // result.a === 1
+ * // Comments are stored in symbol properties
+ *
+ * @example
+ * // With reviver function
+ * const result = parse('{"a": "1"}', (key, value) => {
+ *   return typeof value === 'string' ? parseInt(value) : value
+ * })
+ *
+ * @example
+ * // Without comments
+ * const clean = parse('{"a": 1 // comment}', null, true)
+ * // Returns clean object without comment symbols
+ */
 const parse = (code, rev, no_comments) => {
   // Clean variables in closure
   clean()

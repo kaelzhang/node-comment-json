@@ -167,7 +167,34 @@ module.exports = {
 
   is_raw_json,
 
-  // TODO: js doc and usage examples
+  /**
+   * Assign properties and comments from source to target object.
+   *
+   * @param {Object} target The target object to assign properties and comments
+   *   to.
+   * @param {Object} source The source object to copy properties and comments
+   *   from.
+   * @param {Array<string|number>} [keys] Optional array of keys to assign. If
+   *   not provided, all keys and non-property comments are assigned. If empty
+   *   array, only non-property comments are assigned.
+   * @returns {Object} The target object with assigned properties and comments.
+   *
+   * @throws {TypeError} If target cannot be converted to object or keys is not
+   *   array or undefined.
+   *
+   * @example
+   * const source = parse('{"a": 1 // comment a, "b": 2 // comment b}')
+   * const target = {}
+   *
+   * // Copy all properties and comments
+   * assign(target, source)
+   *
+   * // Copy only specific properties and their comments
+   * assign(target, source, ['a'])
+   *
+   * // Copy only non-property comments
+   * assign(target, source, [])
+   */
   assign (target, source, keys) {
     if (!isObject(target)) {
       throw new TypeError('Cannot convert undefined or null to object')
@@ -199,7 +226,43 @@ module.exports = {
     return assign(target, source, keys)
   },
 
-  // TODO: js doc and usage examples
+  /**
+   * Move comments from one location to another within objects.
+   *
+   * @param {Object} source The source object containing comments to move.
+   * @param {Object} [target] The target object to move comments to. If not
+   *   provided, defaults to source (move within same object).
+   * @param {Object} from The source comment location.
+   * @param {string} from.kind The kind of comment prefix (e.g., 'before',
+   *   'after', 'before-all', etc.).
+   * @param {string} [from.key] The property key for property-specific comments.
+   *   Omit for non-property comments.
+   * @param {Object} to The target comment location.
+   * @param {string} to.kind The kind of comment prefix (e.g., 'before',
+   *   'after', 'before-all', etc.).
+   * @param {string} [to.key] The property key for property-specific comments.
+   *   Omit for non-property comments.
+   * @param {boolean} [override=false] Whether to override existing comments at
+   *   the target location. If false, comments will be appended.
+   *
+   * @throws {TypeError} If source is not an object.
+   *
+   * @example
+   * const obj = parse('{"a": 1 // comment on a}')
+   *
+   * // Move comment from after 'a' to before 'a'
+   * moveComments(obj, obj,
+   *   { kind: 'after', key: 'a' },
+   *   { kind: 'before', key: 'a' }
+   * )
+   *
+   * @example
+   * // Move non-property comment
+   * moveComments(obj, obj,
+   *   { kind: 'before-all' },
+   *   { kind: 'after-all' }
+   * )
+   */
   moveComments (source, target, {
     kind: from_kind,
     key: from_key

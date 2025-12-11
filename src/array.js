@@ -84,6 +84,21 @@ const get_mapped = (map, key) => {
   return mapped
 }
 
+/**
+ * An Array subclass that preserves comments when array operations are performed.
+ *
+ * CommentArray extends the native Array class and automatically handles comment
+ * preservation during array mutations like splice, slice, push, pop, etc.
+ * Comments are stored as symbol properties and are moved/copied appropriately
+ * when the array structure changes.
+ *
+ * @extends Array
+ *
+ * @example
+ * const arr = parse('[1, 2, 3]') // with comments
+ * // arr is a CommentArray instance
+ * arr.splice(1, 1) // Comments are preserved and repositioned correctly
+ */
 class CommentArray extends Array {
   // - deleteCount + items.length
 
@@ -91,6 +106,13 @@ class CommentArray extends Array {
   // because `splice(0, undefined)` is not equivalent to `splice(0)`,
   // as well as:
   // - slice
+  /**
+   * Changes the contents of an array by removing or replacing existing elements and/or adding new elements in place.
+   * Comments are automatically preserved and repositioned during the operation.
+   *
+   * @param {...*} args Arguments passed to Array.prototype.splice
+   * @returns {CommentArray} A new CommentArray containing the deleted elements.
+   */
   splice (...args) {
     const {length} = this
     const ret = super.splice(...args)
@@ -136,6 +158,13 @@ class CommentArray extends Array {
     return ret
   }
 
+  /**
+   * Returns a shallow copy of a portion of an array into a new CommentArray object.
+   * Comments are copied to the appropriate positions in the new array.
+   *
+   * @param {...*} args Arguments passed to Array.prototype.slice
+   * @returns {CommentArray} A new CommentArray containing the extracted elements with their comments.
+   */
   slice (...args) {
     const {length} = this
     const array = super.slice(...args)
