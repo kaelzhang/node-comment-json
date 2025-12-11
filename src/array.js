@@ -107,7 +107,8 @@ class CommentArray extends Array {
   // as well as:
   // - slice
   /**
-   * Changes the contents of an array by removing or replacing existing elements and/or adding new elements in place.
+   * Changes the contents of an array by removing or replacing existing
+   *   elements and/or adding new elements in place.
    * Comments are automatically preserved and repositioned during the operation.
    *
    * @param {...*} args Arguments passed to Array.prototype.splice
@@ -163,7 +164,8 @@ class CommentArray extends Array {
    * Comments are copied to the appropriate positions in the new array.
    *
    * @param {...*} args Arguments passed to Array.prototype.slice
-   * @returns {CommentArray} A new CommentArray containing the extracted elements with their comments.
+   * @returns {CommentArray} A new CommentArray containing the extracted
+   *   elements with their comments.
    */
   slice (...args) {
     const {length} = this

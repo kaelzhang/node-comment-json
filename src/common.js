@@ -43,7 +43,7 @@ const UNDEFINED = undefined
 const symbol = (prefix, key) => Symbol.for(prefix + COLON + key)
 const symbol_checked = (prefix, key) => key
   ? symbol(prefix, key)
-  : prefix
+  : Symbol.for(prefix)
 
 const define = (target, key, value) => Object.defineProperty(target, key, {
   value,
