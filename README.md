@@ -461,7 +461,7 @@ stringify(obj, null, 2)
 
 ### Special cases about `keys`
 
-But if argument `keys` is specified and is not empty, then comment ` before all`, which belongs to no properties, will **NOT** be copied.
+But if argument `keys` is specified and is not empty, then comment ` before all`, which belongs to non-properties, will **NOT** be copied.
 
 ```js
 const obj = assign({
@@ -495,6 +495,7 @@ Non-property symbols include:
 ```js
 Symbol.for('before-all')
 Symbol.for('before')
+Symbol.for('after')      // only for stringify
 Symbol.for('after-all')
 ```
 

@@ -111,3 +111,16 @@ export function assign<TTarget, TSource>(
   // we set the type of `keys` stricter
   keys?: readonly (number | string)[]
 ): TTarget
+
+export function moveComments(
+  source: CommentJSONValue,
+  target: CommentJSONValue,
+  from: {
+    kind: string,
+    key?: string
+  },
+  to: {
+    kind: string,
+    key?: string
+  }, override?: boolean
+): void

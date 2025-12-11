@@ -41,6 +41,9 @@ const COLON = ':'
 const UNDEFINED = undefined
 
 const symbol = (prefix, key) => Symbol.for(prefix + COLON + key)
+const symbol_checked = (prefix, key) => key
+  ? symbol(prefix, key)
+  : prefix
 
 const define = (target, key, value) => Object.defineProperty(target, key, {
   value,
@@ -164,6 +167,7 @@ module.exports = {
 
   is_raw_json,
 
+  // TODO: js doc and usage examples
   assign (target, source, keys) {
     if (!isObject(target)) {
       throw new TypeError('Cannot convert undefined or null to object')
@@ -174,6 +178,10 @@ module.exports = {
     }
 
     if (keys === UNDEFINED) {
+      // Copy all comments from source to target, including:
+      // - non-property comments
+      // - property comments
+
       keys = Object.keys(source)
       // We assign non-property comments
       // if argument `keys` is not specified
@@ -181,10 +189,57 @@ module.exports = {
     } else if (!isArray(keys)) {
       throw new TypeError('keys must be array or undefined')
     } else if (keys.length === 0) {
+      // Copy all non-property comments from source to target
+
       // Or argument `keys` is an empty array
       assign_non_prop_comments(target, source)
     }
 
+    // Copy specified property comments from source to target
     return assign(target, source, keys)
+  },
+
+  // TODO: js doc and usage examples
+  moveComments (source, target, {
+    kind: from_kind,
+    key: from_key
+  }, {
+    kind: to_kind,
+    key: to_key
+  }, override = false) {
+    if (!isObject(source)) {
+      throw new TypeError('source must be an object')
+    }
+
+    if (!target) {
+      target = source
+    }
+
+    if (!isObject(target)) {
+      // No target to move to
+      return
+    }
+
+    const from_prop = symbol_checked(from_kind, from_key)
+    const to_prop = symbol_checked(to_kind, to_key)
+
+    if (!Object.hasOwn(source, from_prop)) {
+      return
+    }
+
+    const source_comments = source[from_prop]
+    delete source[from_prop]
+
+    if (override || !Object.hasOwn(target, to_prop)) {
+      // Override
+      // or the target has no existing comments
+      define(target, to_prop, source_comments)
+      return
+    }
+
+    const target_comments = target[to_prop]
+    if (target_comments) {
+      target_comments.push(...source_comments)
+    }
   }
 }

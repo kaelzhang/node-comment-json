@@ -332,6 +332,8 @@ const is_primitive_object = subject => {
   return PRIMITIVE_OBJECT_TYPES.includes(str)
 }
 
+// TODO: js doc and usage examples
+
 // @param {function()|Array} replacer
 // @param {string|number} space
 module.exports = (value, replacer_, space) => {

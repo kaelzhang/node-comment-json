@@ -417,6 +417,7 @@ function walk () {
 
 const isObject = subject => Object(subject) === subject
 
+// TODO: js doc and usage examples
 const parse = (code, rev, no_comments) => {
   // Clean variables in closure
   clean()
