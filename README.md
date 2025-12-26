@@ -552,8 +552,8 @@ const obj = parse(`// top comment
 
 // Move top comment to bottom
 moveComments(obj, obj,
-  { kind: 'before-all' },
-  { kind: 'after-all' }
+  { where: 'before-all' },
+  { where: 'after-all' }
 )
 
 console.log(stringify(obj, null, 2))
@@ -574,8 +574,8 @@ const target = { bar: 2 }
 
 // Move comment from source to target
 moveComments(source, target,
-  { kind: 'after-value', key: 'foo' },
-  { kind: 'before', key: 'bar' }
+  { where: 'after-value', key: 'foo' },
+  { where: 'before', key: 'bar' }
 )
 
 console.log(stringify(target, null, 2))
@@ -596,8 +596,8 @@ const obj = parse(`{
 
 // By default, comments are appended (override = false)
 moveComments(obj, obj,
-  { kind: 'after-value', key: 'foo' },
-  { kind: 'before', key: 'foo' }
+  { where: 'after-value', key: 'foo' },
+  { where: 'before', key: 'foo' }
 )
 
 console.log(stringify(obj, null, 2))
@@ -610,8 +610,8 @@ console.log(stringify(obj, null, 2))
 
 // With override = true, existing comments are replaced
 moveComments(obj, obj,
-  { kind: 'before', key: 'bar' },
-  { kind: 'before', key: 'foo' },
+  { where: 'before', key: 'bar' },
+  { where: 'before', key: 'foo' },
   true // override existing comments
 )
 ```
