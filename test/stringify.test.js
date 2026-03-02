@@ -6,7 +6,9 @@ const {isFunction, isString} = require('core-util-is')
 
 const {parse, stringify} = require('..')
 const {
-  set_comment_line_breaks
+  set_comment_line_breaks,
+  set_raw_string_literal,
+  get_raw_string_literal
 } = require('../src/common')
 
 const normalize_blank_lines = subject => subject.replace(/\n[ \t]+\n/g, '\n\n')
@@ -424,4 +426,73 @@ test('handles zero line-break metadata for first and non-first comments', t => {
   const output = stringify(obj, null, 2)
 
   t.true(output.startsWith('// first\n// second\n{'))
+})
+
+test('escape control characters same as JSON.stringify', t => {
+  for (let i = 0; i <= 0x1f; i ++) {
+    const char = String.fromCharCode(i)
+    t.is(stringify(char, null, 2), JSON.stringify(char, null, 2))
+  }
+})
+
+test('escape vertical tab as unicode', t => {
+  t.is(JSON.stringify('\x0B', null, 4), '"\\u000b"')
+  t.is(stringify('\x0B', null, 4), '"\\u000b"')
+})
+
+test('stringify should keep problematic unicode as escapes in workspace-like JSONC', t => {
+  const input = `{
+  "settings": {
+    "highlight-bad-chars.additionalUnicodeChars": [
+      "\\u0008", // BACKSPACE
+      "\\u3000", // IDEOGRAPHIC SPACE
+      "\\u00A0", // NO-BREAK SPACE
+      "\\u200E", // LEFT-TO-RIGHT MARK
+      "\\u200F", // RIGHT-TO-LEFT MARK
+      "\\u309A", // 半濁点
+      "\\u3099" // 濁点
+    ]
+  }
+}`
+
+  const output = stringify(parse(input), null, 2)
+
+  const expectedEscapes = [
+    '\\u0008',
+    '\\u3000',
+    '\\u00A0',
+    '\\u200E',
+    '\\u200F',
+    '\\u309A',
+    '\\u3099'
+  ]
+
+  expectedEscapes.forEach(escape => {
+    t.true(output.includes(`"${escape}"`))
+  })
+})
+
+test('stringify should fallback to native escaping when string value changed', t => {
+  const parsed = parse('{"a":"\\\\u00A0"}')
+
+  parsed.a = '\x0B'
+
+  t.is(stringify(parsed, null, 2), `{
+  "a": "\\u000b"
+}`)
+})
+
+test('raw string literal helpers should ignore invalid host and key', t => {
+  set_raw_string_literal(null, 'a', '"foo"')
+  set_raw_string_literal({}, null, '"foo"')
+  set_raw_string_literal({}, 'a', null)
+
+  t.is(get_raw_string_literal(null, 'a'), undefined)
+  t.is(get_raw_string_literal({}, null), undefined)
+
+  const holder = {}
+  set_raw_string_literal(holder, 0, '"bar"')
+
+  t.is(get_raw_string_literal(holder, 0), '"bar"')
+  t.is(get_raw_string_literal(holder, '0'), '"bar"')
 })

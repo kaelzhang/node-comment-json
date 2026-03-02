@@ -45,6 +45,46 @@ const UNDEFINED = undefined
 
 const LINE_BREAKS_BEFORE = new WeakMap()
 const LINE_BREAKS_AFTER = new WeakMap()
+const RAW_STRING_LITERALS = new WeakMap()
+
+const normalize_key = key => isString(key) || isNumber(key)
+  ? String(key)
+  : null
+
+const set_raw_string_literal = (host, key, raw) => {
+  if (!isObject(host) || !isString(raw)) {
+    return
+  }
+
+  const normalized = normalize_key(key)
+  if (normalized === null) {
+    return
+  }
+
+  let map = RAW_STRING_LITERALS.get(host)
+  if (!map) {
+    map = new Map()
+    RAW_STRING_LITERALS.set(host, map)
+  }
+
+  map.set(normalized, raw)
+}
+
+const get_raw_string_literal = (host, key) => {
+  if (!isObject(host)) {
+    return
+  }
+
+  const normalized = normalize_key(key)
+  if (normalized === null) {
+    return
+  }
+
+  const map = RAW_STRING_LITERALS.get(host)
+  return map
+    ? map.get(normalized)
+    : undefined
+}
 
 const symbol = (prefix, key) => Symbol.for(prefix + COLON + key)
 const symbol_checked = (prefix, key) => {
@@ -199,6 +239,8 @@ module.exports = {
   assign_non_prop_comments,
 
   is_raw_json,
+  set_raw_string_literal,
+  get_raw_string_literal,
   set_comment_line_breaks,
   get_comment_line_breaks_before,
   get_comment_line_breaks_after,

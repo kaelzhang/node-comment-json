@@ -20,14 +20,12 @@ const {
   EMPTY,
 
   UNDEFINED,
+  get_raw_string_literal,
   get_comment_line_breaks_before,
   get_comment_line_breaks_after,
 
   is_raw_json
 } = require('./common')
-
-// eslint-disable-next-line no-control-regex, no-misleading-character-class
-const ESCAPABLE = /[\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g
 
 // String constants
 const SPACE = ' '
@@ -41,36 +39,7 @@ const AFTER_COLON = prop => `${PREFIX_AFTER_COLON}:${prop}`
 const AFTER_VALUE = prop => `${PREFIX_AFTER_VALUE}:${prop}`
 const AFTER = prop => `${PREFIX_AFTER}:${prop}`
 
-// table of character substitutions
-const meta = {
-  '\b': '\\b',
-  '\t': '\\t',
-  '\n': '\\n',
-  '\f': '\\f',
-  '\r': '\\r',
-  '"': '\\"',
-  '\\': '\\\\'
-}
-
-const escape = string => {
-  ESCAPABLE.lastIndex = 0
-
-  if (!ESCAPABLE.test(string)) {
-    return string
-  }
-
-  return string.replace(ESCAPABLE, a => {
-    const c = meta[a]
-    return typeof c === 'string'
-      ? c
-      : a
-  })
-}
-
-// Escape no control characters, no quote characters,
-// and no backslash characters,
-// then we can safely slap some quotes around it.
-const quote = string => `"${escape(string)}"`
+const quote = JSON.stringify
 const comment_stringify = (value, line) => line
   ? `//${value}`
   : `/*${value}*/`
@@ -212,6 +181,21 @@ const join_content = (inside, value, gap) => {
   const comment = process_comments(value, PREFIX_BEFORE, gap + indent, true)
 
   return join(comment, inside, gap)
+}
+
+const stringify_string = (holder, key, value) => {
+  const raw = get_raw_string_literal(holder, key)
+  if (isString(raw)) {
+    try {
+      if (JSON.parse(raw) === value) {
+        return raw
+      }
+    } catch (e) {
+      // ignore invalid raw string literals and fallback to native behavior
+    }
+  }
+
+  return quote(value)
 }
 
 // | deeper_gap   |
@@ -360,7 +344,7 @@ function stringify (key, holder, gap) {
 
   switch (typeof value) {
   case 'string':
-    return quote(value)
+    return stringify_string(holder, key, value)
 
   case 'number':
     // JSON numbers must be finite. Encode non-finite numbers as null.

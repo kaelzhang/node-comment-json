@@ -29,6 +29,7 @@ const {
   UNDEFINED,
 
   define,
+  set_raw_string_literal,
   set_comment_line_breaks,
   assign_non_prop_comments
 } = require('./common')
@@ -432,6 +433,8 @@ function walk () {
 
   switch (tt) {
   case 'String':
+    set_raw_string_literal(comments_host, last_prop, current.value)
+    // falls through
   case 'Boolean':
   case 'Null':
   case 'Numeric':
