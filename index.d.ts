@@ -106,6 +106,22 @@ export function parse(
 ): CommentJSONValue
 
 /**
+ * Typed parse helper for consumers who know the expected JSON schema.
+ *
+ * @example
+ * interface ExtensionsJson {
+ *   recommendations: string[]
+ * }
+ *
+ * const extensions = parse<ExtensionsJson>(jsonText)
+ */
+export function parse<T>(
+  json: string,
+  reviver?: Reviver | null,
+  removesComments?: boolean
+): T
+
+/**
  * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
  * @param value A JavaScript value, usually an object or array, to be converted.
  * @param replacer A function that transforms the results or an array of strings and numbers that acts as a approved list for selecting the object properties that will be stringified.
@@ -179,4 +195,3 @@ export function removeComments(
   target: CommentJSONValue,
   location: CommentPosition
 ): void
-

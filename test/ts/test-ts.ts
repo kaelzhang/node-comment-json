@@ -20,6 +20,22 @@ const assert = (test: boolean, message: string): void => {
 
 assert((parse('{"a":1}') as CommentObject).a === 1, 'basic parse')
 
+interface ExtensionsJson {
+  recommendations: string[]
+}
+
+let extensions: ExtensionsJson | undefined
+extensions = parse<ExtensionsJson>(`{
+  "recommendations": [
+    "example.extension"
+  ]
+}`)
+
+assert(
+  (extensions?.recommendations?.indexOf('example.extension') ?? - 1) >= 0,
+  'typed parse: extensions recommendations'
+)
+
 const str = `{
   // This is a comment
   "foo": "bar"
