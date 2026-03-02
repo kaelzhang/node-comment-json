@@ -174,6 +174,33 @@ test('preserve blank lines between array items with comments', t => {
   t.is(normalize_blank_lines(output), normalize_blank_lines(content))
 })
 
+test('preserve blank lines between commented items with trailing commas', t => {
+  const input = `{
+  "foo": [
+    // bar
+    "bar",
+
+    // baz
+    "baz",
+  ],
+}`
+
+  const expected = `{
+  "foo": [
+    // bar
+    "bar",
+
+    // baz
+    "baz"
+  ]
+}`
+
+  const parsed = parse(input)
+  const output = stringify(parsed, null, 2)
+
+  t.is(normalize_blank_lines(output), normalize_blank_lines(expected))
+})
+
 test('preserve blank lines after before comments', t => {
   const content = `{
   // before a
