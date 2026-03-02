@@ -440,7 +440,7 @@ test('escape vertical tab as unicode', t => {
   t.is(stringify('\x0B', null, 4), '"\\u000b"')
 })
 
-test('stringify should keep problematic unicode as escapes in workspace-like JSONC', t => {
+test('#29, stringify should keep problematic unicode as escapes in workspace-like JSONC', t => {
   const input = `{
   "settings": {
     "highlight-bad-chars.additionalUnicodeChars": [
