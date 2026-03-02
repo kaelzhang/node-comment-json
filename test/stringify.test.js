@@ -5,6 +5,11 @@ const fs = require('fs')
 const {isFunction, isString} = require('core-util-is')
 
 const {parse, stringify} = require('..')
+const {
+  set_comment_line_breaks
+} = require('../src/common')
+
+const normalize_blank_lines = subject => subject.replace(/\n[ \t]+\n/g, '\n\n')
 
 const SUBJECTS = [
   'abc',
@@ -150,4 +155,246 @@ OLD_CASES.forEach(name => {
       t.is(str, content)
     })
   })
+})
+
+test('preserve blank lines between array items with comments', t => {
+  const content = `{
+  "extends": [
+    // base config
+    "base",
+
+    // node config
+    "node"
+  ]
+}`
+
+  const parsed = parse(content)
+  const output = stringify(parsed, null, 2)
+
+  t.is(normalize_blank_lines(output), normalize_blank_lines(content))
+})
+
+test('preserve blank lines after before comments', t => {
+  const content = `{
+  // before a
+
+  "a": 1
+}`
+
+  const parsed = parse(content)
+  const output = stringify(parsed, null, 2)
+
+  t.is(normalize_blank_lines(output), normalize_blank_lines(content))
+})
+
+test('fallback to loc line breaks if internal metadata is missing', t => {
+  const comments = [
+    {
+      type: 'LineComment',
+      value: ' first',
+      inline: false,
+      loc: {
+        start: {
+          line: 2,
+          column: 2
+        },
+        end: {
+          line: 2,
+          column: 10
+        }
+      }
+    },
+    {
+      type: 'LineComment',
+      value: ' second',
+      inline: false,
+      loc: {
+        start: {
+          line: 4,
+          column: 2
+        },
+        end: {
+          line: 4,
+          column: 11
+        }
+      }
+    }
+  ]
+
+  const obj = {
+    a: 1
+  }
+
+  Object.defineProperty(obj, Symbol.for('before:a'), {
+    value: comments,
+    writable: true,
+    configurable: true
+  })
+
+  const output = stringify(obj, null, 2)
+
+  t.true(output.includes('// first\n  \n  // second'))
+})
+
+test('fallback to default spacing if loc is malformed', t => {
+  const comments = [
+    {
+      type: 'LineComment',
+      value: ' first',
+      inline: false,
+      loc: {
+        start: {
+          line: 2,
+          column: 2
+        },
+        end: {
+          line: 2,
+          column: 10
+        }
+      }
+    },
+    {
+      type: 'LineComment',
+      value: ' second',
+      inline: false,
+      loc: {
+        start: {},
+        end: {}
+      }
+    }
+  ]
+
+  const obj = {
+    a: 1
+  }
+
+  Object.defineProperty(obj, Symbol.for('before:a'), {
+    value: comments,
+    writable: true,
+    configurable: true
+  })
+
+  const output = stringify(obj, null, 2)
+
+  t.true(output.includes('// first\n  // second'))
+})
+
+test('fallback to inline spacing if no metadata and no loc', t => {
+  const comments = [
+    {
+      type: 'LineComment',
+      value: ' first',
+      inline: false,
+      loc: {
+        start: {
+          line: 2,
+          column: 2
+        },
+        end: {
+          line: 2,
+          column: 10
+        }
+      }
+    },
+    {
+      type: 'BlockComment',
+      value: ' second ',
+      inline: true
+    }
+  ]
+
+  const obj = {
+    a: 1
+  }
+
+  Object.defineProperty(obj, Symbol.for('before:a'), {
+    value: comments,
+    writable: true,
+    configurable: true
+  })
+
+  const output = stringify(obj, null, 2)
+
+  t.true(output.includes('// first /* second */'))
+})
+
+test('fallback when loc line order is invalid', t => {
+  const comments = [
+    {
+      type: 'LineComment',
+      value: ' first',
+      inline: false,
+      loc: {
+        start: {
+          line: 3,
+          column: 2
+        },
+        end: {
+          line: 3,
+          column: 10
+        }
+      }
+    },
+    {
+      type: 'LineComment',
+      value: ' second',
+      inline: false,
+      loc: {
+        start: {
+          line: 2,
+          column: 2
+        },
+        end: {
+          line: 2,
+          column: 11
+        }
+      }
+    }
+  ]
+
+  const obj = {
+    a: 1
+  }
+
+  Object.defineProperty(obj, Symbol.for('before:a'), {
+    value: comments,
+    writable: true,
+    configurable: true
+  })
+
+  const output = stringify(obj, null, 2)
+
+  t.true(output.includes('// first\n  // second'))
+})
+
+test('handles zero line-break metadata for first and non-first comments', t => {
+  const comments = [
+    {
+      type: 'LineComment',
+      value: ' first',
+      inline: false
+    },
+    {
+      type: 'LineComment',
+      value: ' second',
+      inline: false
+    }
+  ]
+
+  set_comment_line_breaks(comments[0], 0)
+  set_comment_line_breaks(comments[1], 0)
+
+  const obj = {
+    a: 1
+  }
+
+  Object.defineProperty(obj, Symbol.for('before-all'), {
+    value: comments,
+    writable: true,
+    configurable: true
+  })
+
+  const output = stringify(obj, null, 2)
+
+  t.true(output.startsWith('// first\n// second\n{'))
 })

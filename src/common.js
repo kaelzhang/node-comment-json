@@ -43,6 +43,9 @@ const NON_PROP_SYMBOL_KEYS = NON_PROP_SYMBOL_PREFIXES.map(Symbol.for)
 const COLON = ':'
 const UNDEFINED = undefined
 
+const LINE_BREAKS_BEFORE = new WeakMap()
+const LINE_BREAKS_AFTER = new WeakMap()
+
 const symbol = (prefix, key) => Symbol.for(prefix + COLON + key)
 const symbol_checked = (prefix, key) => {
   if (key) {
@@ -152,6 +155,19 @@ const is_raw_json = isFunction(JSON.isRawJSON)
   // istanbul ignore next
   : () => false
 
+const set_comment_line_breaks = (comment, before, after) => {
+  if (isNumber(before) && before >= 0) {
+    LINE_BREAKS_BEFORE.set(comment, before)
+  }
+
+  if (isNumber(after) && after >= 0) {
+    LINE_BREAKS_AFTER.set(comment, after)
+  }
+}
+
+const get_comment_line_breaks_before = comment => LINE_BREAKS_BEFORE.get(comment)
+const get_comment_line_breaks_after = comment => LINE_BREAKS_AFTER.get(comment)
+
 module.exports = {
   PROP_SYMBOL_PREFIXES,
 
@@ -183,6 +199,9 @@ module.exports = {
   assign_non_prop_comments,
 
   is_raw_json,
+  set_comment_line_breaks,
+  get_comment_line_breaks_before,
+  get_comment_line_breaks_after,
 
   /**
    * Assign properties and comments from source to target object.

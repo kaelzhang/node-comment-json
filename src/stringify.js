@@ -20,6 +20,8 @@ const {
   EMPTY,
 
   UNDEFINED,
+  get_comment_line_breaks_before,
+  get_comment_line_breaks_after,
 
   is_raw_json
 } = require('./common')
@@ -72,6 +74,50 @@ const quote = string => `"${escape(string)}"`
 const comment_stringify = (value, line) => line
   ? `//${value}`
   : `/*${value}*/`
+const repeat_line_breaks = (line_breaks, gap) => (LF + gap).repeat(line_breaks)
+const read_line_breaks = line_breaks => isNumber(line_breaks) && line_breaks >= 0
+  ? line_breaks
+  : null
+const read_line_breaks_from_loc = (previous_comment, comment) => {
+  if (
+    !previous_comment
+    || !previous_comment.loc
+    || !comment.loc
+  ) {
+    return null
+  }
+
+  const {end} = previous_comment.loc
+  const {start} = comment.loc
+
+  if (
+    !end
+    || !start
+    || !isNumber(end.line)
+    || !isNumber(start.line)
+  ) {
+    return null
+  }
+
+  const line_breaks = start.line - end.line
+
+  return line_breaks >= 0
+    ? line_breaks
+    : null
+}
+const count_trailing_line_breaks = (str, gap) => {
+  const unit = LF + gap
+  const {length} = unit
+  let i = str.length
+  let count = 0
+
+  while (i >= length && str.slice(i - length, i) === unit) {
+    i -= length
+    count ++
+  }
+
+  return count
+}
 
 // display_block `boolean` whether the
 //   WHOLE block of comments is always a block group
@@ -81,27 +127,58 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
     return EMPTY
   }
 
-  let is_line_comment = false
+  let str = EMPTY
+  let last_comment = null
 
-  const str = comments.reduce((prev, {
-    inline,
-    type,
-    value
-  }) => {
-    const delimiter = inline
-      ? SPACE
-      : LF + deeper_gap
+  comments.forEach((comment, i) => {
+    const {
+      inline,
+      type,
+      value
+    } = comment
 
-    is_line_comment = type === 'LineComment'
+    let line_breaks_before = read_line_breaks(
+      get_comment_line_breaks_before(comment)
+    )
 
-    return prev + delimiter + comment_stringify(value, is_line_comment)
-  }, EMPTY)
+    if (line_breaks_before === null) {
+      line_breaks_before = read_line_breaks_from_loc(last_comment, comment)
+    }
 
-  return display_block
-  // line comment should always end with a LF
-  || is_line_comment
-    ? str + LF + deeper_gap
-    : str
+    if (line_breaks_before === null) {
+      line_breaks_before = inline
+        ? 0
+        : 1
+    }
+
+    const delimiter = line_breaks_before > 0
+      ? repeat_line_breaks(line_breaks_before, deeper_gap)
+      : inline
+        ? SPACE
+        // The first comment at the very beginning of the source.
+        : i === 0
+          ? EMPTY
+          : LF + deeper_gap
+
+    const is_line_comment = type === 'LineComment'
+
+    str += delimiter + comment_stringify(value, is_line_comment)
+
+    last_comment = comment
+  })
+
+  const default_line_breaks_after = display_block
+    // line comment should always end with a LF
+    || last_comment.type === 'LineComment'
+    ? 1
+    : 0
+
+  const line_breaks_after = Math.max(
+    default_line_breaks_after,
+    read_line_breaks(get_comment_line_breaks_after(last_comment)) || 0
+  )
+
+  return str + repeat_line_breaks(line_breaks_after, deeper_gap)
 }
 
 let replacer = null
@@ -120,9 +197,15 @@ const join = (one, two, gap) =>
       // and make a mistake.
       // SO, we are not to only trimRight but trim for both sides
       ? one + two.trim() + LF + gap
-      : one.trimRight() + LF + gap
+      : one.trimRight() + repeat_line_breaks(
+        Math.max(1, count_trailing_line_breaks(one, gap)),
+        gap
+      )
     : two
-      ? two.trimRight() + LF + gap
+      ? two.trimRight() + repeat_line_breaks(
+        Math.max(1, count_trailing_line_breaks(two, gap)),
+        gap
+      )
       : EMPTY
 
 const join_content = (inside, value, gap) => {

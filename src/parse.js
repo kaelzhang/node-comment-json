@@ -29,6 +29,7 @@ const {
   UNDEFINED,
 
   define,
+  set_comment_line_breaks,
   assign_non_prop_comments
 } = require('./common')
 
@@ -218,17 +219,41 @@ const parse_comments = prefix => {
       inline
     }
 
+    const previous_line = last
+      ? last.loc.end.line
+      : 1
+
+    set_comment_line_breaks(
+      comment,
+      Math.max(0, comment.loc.start.line - previous_line)
+    )
+
     // delete comment.loc
     comments.push(comment)
 
     next()
   }
 
+  const {length} = comments
+
+  if (length) {
+    const comment = comments[length - 1]
+    const current_line = current
+      ? current.loc.start.line
+      : comment.loc.end.line
+
+    set_comment_line_breaks(
+      comment,
+      undefined,
+      Math.max(0, current_line - comment.loc.end.line)
+    )
+  }
+
   if (remove_comments) {
     return
   }
 
-  if (!comments.length) {
+  if (!length) {
     return
   }
 
