@@ -205,7 +205,9 @@ const set_comment_line_breaks = (comment, before, after) => {
   }
 }
 
-const get_comment_line_breaks_before = comment => LINE_BREAKS_BEFORE.get(comment)
+const get_comment_line_breaks_before = comment =>
+  LINE_BREAKS_BEFORE.get(comment)
+
 const get_comment_line_breaks_after = comment => LINE_BREAKS_AFTER.get(comment)
 
 module.exports = {
