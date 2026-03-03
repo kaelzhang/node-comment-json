@@ -1,11 +1,3 @@
-const {
-  isObject,
-  isArray,
-  isString,
-  isNumber,
-  isFunction
-} = require('core-util-is')
-
 const PREFIX_BEFORE = 'before'
 const PREFIX_AFTER_PROP = 'after-prop'
 const PREFIX_AFTER_COLON = 'after-colon'
@@ -111,6 +103,12 @@ const define = (target, key, value) => Object.defineProperty(target, key, {
   configurable: true
 })
 
+/**
+ * @param {unknown} v
+ * @returns {v is NonNullable<object>}
+ */
+const is_object = v => typeof v === 'object' && v !== null
+
 const copy_comments_by_kind = (
   target, source, target_key, source_key, prefix, remove_source
 ) => {
@@ -173,7 +171,7 @@ const assign_non_prop_comments = (target, source) => {
 // Assign keys and comments
 const assign = (target, source, keys) => {
   keys.forEach(key => {
-    if (!isString(key) && !isNumber(key)) {
+    if (typeof key !== 'string' && typeof key !== 'number') {
       return
     }
 
@@ -238,6 +236,8 @@ module.exports = {
   swap_comments,
   assign_non_prop_comments,
 
+  is_object,
+
   is_raw_json,
   set_raw_string_literal,
   get_raw_string_literal,
@@ -274,11 +274,11 @@ module.exports = {
    * assign(target, source, [])
    */
   assign (target, source, keys) {
-    if (!isObject(target)) {
+    if (!is_object(target)) {
       throw new TypeError('Cannot convert undefined or null to object')
     }
 
-    if (!isObject(source)) {
+    if (!is_object(source)) {
       return target
     }
 
@@ -291,7 +291,7 @@ module.exports = {
       // We assign non-property comments
       // if argument `keys` is not specified
       assign_non_prop_comments(target, source)
-    } else if (!isArray(keys)) {
+    } else if (!Array.isArray(keys)) {
       throw new TypeError('keys must be array or undefined')
     } else if (keys.length === 0) {
       // Copy all non-property comments from source to target

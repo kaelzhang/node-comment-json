@@ -1,8 +1,4 @@
 const {
-  isArray, isObject, isFunction, isNumber, isString
-} = require('core-util-is')
-
-const {
   PREFIX_BEFORE_ALL,
   PREFIX_BEFORE,
   PREFIX_AFTER_PROP,
@@ -20,6 +16,9 @@ const {
   EMPTY,
 
   UNDEFINED,
+
+  is_object,
+
   get_raw_string_literal,
   get_comment_line_breaks_before,
   get_comment_line_breaks_after,
@@ -267,7 +266,7 @@ const object_stringify = (value, gap) => {
   let after_comma = EMPTY
   let first = true
 
-  const keys = isArray(replacer)
+  const keys = Array.isArray(replacer)
     ? replacer
     : Object.keys(value)
 
@@ -332,13 +331,13 @@ function stringify (key, holder, gap) {
   let value = holder[key]
 
   // If the value has a toJSON method, call it to obtain a replacement value.
-  if (isObject(value) && isFunction(value.toJSON)) {
+  if (is_object(value) && typeof value.toJSON === 'function') {
     value = value.toJSON(key)
   }
 
   // If we were called with a replacer function, then call the replacer to
   // obtain a replacement value.
-  if (isFunction(replacer)) {
+  if (typeof replacer === 'function') {
     value = replacer.call(holder, key, value)
   }
 
@@ -365,7 +364,7 @@ function stringify (key, holder, gap) {
       return value.rawJSON
     }
 
-    return isArray(value)
+    return Array.isArray(value)
       ? array_stringify(value, gap)
       : object_stringify(value, gap)
 
@@ -376,10 +375,10 @@ function stringify (key, holder, gap) {
   }
 }
 
-const get_indent = space => isString(space)
+const get_indent = space => typeof space === 'string'
   // If the space parameter is a string, it will be used as the indent string.
   ? space
-  : isNumber(space)
+  : typeof space === 'number'
     ? SPACE.repeat(space)
     : EMPTY
 
@@ -442,7 +441,7 @@ module.exports = (value, replacer_, space) => {
   }
 
   // vanilla `JSON.parse` allow invalid replacer
-  if (!isFunction(replacer_) && !isArray(replacer_)) {
+  if (typeof replacer_ !== 'function' && !Array.isArray(replacer_)) {
     replacer_ = null
   }
 
@@ -455,7 +454,7 @@ module.exports = (value, replacer_, space) => {
 
   clean()
 
-  return isObject(value)
+  return is_object(value)
     ? process_comments(value, PREFIX_BEFORE_ALL, EMPTY, true).trimLeft()
       + str
       + process_comments(value, PREFIX_AFTER_ALL, EMPTY).trimRight()

@@ -1,4 +1,3 @@
-const {isArray} = require('core-util-is')
 const {sort} = require('array-timsort')
 
 const {
@@ -248,7 +247,7 @@ class CommentArray extends Array {
 
     items.forEach(item => {
       const prev = length
-      length += isArray(item)
+      length += Array.isArray(item)
         ? item.length
         : 1
 
