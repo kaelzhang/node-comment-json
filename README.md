@@ -30,6 +30,8 @@ The usage of `comment-json` is exactly the same as the vanilla [`JSON`](https://
   - [parse](#parse)
   - [stringify](#stringify)
   - [assign](#assigntarget-object-source-object-keys-array)
+  - [moveComments](#movecommentssource-object-target-object-from-object-to-object-override-boolean)
+  - [removeComments](#removecommentstarget-object-location-object)
   - [CommentArray](#commentarray)
 - [Change Logs](https://github.com/kaelzhang/node-comment-json/releases)
 
@@ -72,7 +74,9 @@ package.json:
 const {
   parse,
   stringify,
-  assign
+  assign,
+  moveComments,
+  removeComments
 } = require('comment-json')
 const fs = require('fs')
 
@@ -126,6 +130,7 @@ parse(text, reviver? = null, remove_comments? = false)
 
 - **text** `string` The string to parse as JSON. See the [JSON](http://json.org/) object for a description of JSON syntax.
 - **reviver?** `Function() | null` Default to `null`. It acts the same as the second parameter of [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse). If a function, prescribes how the value originally produced by parsing is transformed, before being returned.
+  - `comment-json` also passes the 3rd parameter `context` to the function `reviver`, as described in https://github.com/tc39/proposal-json-parse-with-source, which will be useful to parse a JSON string with `BigInt` values.
 - **remove_comments?** `boolean = false` If true, the comments won't be maintained, which is often used when we want to get a clean object.
 
 Returns `CommentJSONValue` (`object | string | number | boolean | null`) corresponding to the given JSON text.
@@ -232,7 +237,7 @@ And the value of `parsed` will be:
 }
 ```
 
-There are **EIGHT** kinds of symbol properties:
+There are **NINE** kinds of symbol properties:
 
 ```js
 // Comments before everything
@@ -264,6 +269,10 @@ Symbol.for(`after-value:${prop}`)
 // - comma(`,`)
 // - the value of property `prop` if it is the last property
 Symbol.for(`after:${prop}`)
+
+// Always at the inner end of an object or an array,
+// only used for stringification
+Symbol.for('after')
 
 // Comments after everything
 Symbol.for('after-all')
@@ -456,7 +465,7 @@ stringify(obj, null, 2)
 
 ### Special cases about `keys`
 
-But if argument `keys` is specified and is not empty, then comment ` before all`, which belongs to no properties, will **NOT** be copied.
+But if argument `keys` is specified and is not empty, then comment ` before all`, which belongs to non-properties, will **NOT** be copied.
 
 ```js
 const obj = assign({
@@ -490,7 +499,172 @@ Non-property symbols include:
 ```js
 Symbol.for('before-all')
 Symbol.for('before')
+Symbol.for('after')      // only for stringify
 Symbol.for('after-all')
+```
+
+## moveComments(source: object, target?: object, from: object, to: object, override?: boolean)
+
+- **source** `object` The source object containing comments to move.
+- **target?** `object` The target object to move comments to. If not provided, defaults to source (move within same object).
+- **from** `object` The source comment location.
+  - **from.where** `CommentPrefix` The comment position (e.g., 'before', 'after', 'before-all', etc.).
+  - **from.key?** `string` The property key for property-specific comments. Omit for non-property comments.
+- **to** `object` The target comment location.
+  - **to.where** `CommentPrefix` The comment position (e.g., 'before', 'after', 'before-all', etc.).
+  - **to.key?** `string` The property key for property-specific comments. Omit for non-property comments.
+- **override?** `boolean = false` Whether to override existing comments at the target location. If false, comments will be appended.
+
+This method is used to move comments from one location to another within objects. It's particularly useful when you need to reorganize comments or move them between different comment positions.
+
+```js
+const {parse, stringify, moveComments} = require('comment-json')
+
+const obj = parse(`{
+  "foo": 1, // comment after foo
+  "bar": 2
+}`)
+
+// Move comment from `after 'foo'` to `after`
+moveComments(obj, obj,
+  { where: 'after', key: 'foo' },
+  { where: 'after' }
+)
+
+obj.baz = 3
+
+console.log(stringify(obj, null, 2))
+// {
+//   "foo": 1,
+//   "bar": 2,
+//   "baz": 3
+// // comment after foo
+// }
+```
+
+### Moving non-property comments
+
+```js
+const obj = parse(`// top comment
+{
+  "foo": 1
+}`)
+
+// Move top comment to bottom
+moveComments(obj, obj,
+  { where: 'before-all' },
+  { where: 'after-all' }
+)
+
+console.log(stringify(obj, null, 2))
+// {
+//   "foo": 1
+// }
+// // top comment
+```
+
+### Moving comments between objects
+
+```js
+const source = parse(`{
+  "foo": 1 // source comment
+}`)
+
+const target = { bar: 2 }
+
+// Move comment from source to target
+moveComments(source, target,
+  { where: 'after-value', key: 'foo' },
+  { where: 'before', key: 'bar' }
+)
+
+console.log(stringify(target, null, 2))
+// {
+//   // source comment
+//   "bar": 2
+// }
+```
+
+### Appending vs overriding comments
+
+```js
+const obj = parse(`{
+  // existing comment
+  "foo": 1, // another comment
+  "bar": 2
+}`)
+
+// By default, comments are appended (override = false)
+moveComments(obj, obj,
+  { where: 'after-value', key: 'foo' },
+  { where: 'before', key: 'foo' }
+)
+
+console.log(stringify(obj, null, 2))
+// {
+//   // existing comment
+//   // another comment
+//   "foo": 1,
+//   "bar": 2
+// }
+
+// With override = true, existing comments are replaced
+moveComments(obj, obj,
+  { where: 'before', key: 'bar' },
+  { where: 'before', key: 'foo' },
+  true // override existing comments
+)
+```
+
+## removeComments(target: object, location: object)
+
+- **target** `object` The target object to remove comments from.
+- **location** `object` The comment location to remove.
+  - **location.where** `CommentPrefix` The comment position (e.g., 'before', 'after', 'before-all', etc.).
+  - **location.key?** `string` The property key for property-specific comments. Omit for non-property comments.
+
+This method is used to remove comments from a specific location within objects. It's useful for cleaning up comments or removing unwanted comment annotations.
+
+### Basic usage
+
+```js
+const {parse, stringify, removeComments} = require('comment-json')
+
+const obj = parse(`{
+  // comment before foo
+  "foo": 1, // comment after foo
+  "bar": 2
+}`)
+
+// Remove comment before 'foo'
+removeComments(obj, { where: 'before', key: 'foo' })
+
+console.log(stringify(obj, null, 2))
+// {
+//   "foo": 1, // comment after foo
+//   "bar": 2
+// }
+```
+
+### Removing non-property comments
+
+```js
+const obj = parse(`// top comment
+{
+  "foo": 1
+}
+// bottom comment`)
+
+// Remove top comment
+removeComments(obj, { where: 'before-all' })
+
+// Remove bottom comment
+removeComments(obj, { where: 'after-all' })
+
+console.log(stringify(obj, null, 2))
+// {
+//   "foo": 1
+// }
 ```
 
 ## `CommentArray`
@@ -589,6 +763,37 @@ And it will print:
 {
   "foo": "bar" // comment
 }
+```
+
+## Dealing with `BigInt`s
+
+> Advanced Section
+
+`comment-json` implements the TC39 proposal [proposal-json-parse-with-source](https://github.com/tc39/proposal-json-parse-with-source)
+
+```js
+const {parse, stringify} = require('comment-json')
+
+const parsed = parse(
+  `{"foo": 9007199254740993}`,
+  // The reviver function now has a 3rd param that contains the string source.
+  (key, value, {source}) =>
+    /^[0-9]+$/.test(source) ? BigInt(source) : value
+)
+
+console.log(parsed)
+// {
+//   "foo": 9007199254740993n
+// }
+
+stringify(parsed, (key, val) =>
+  typeof value === 'bigint'
+    // Pay attention that
+    //   JSON.rawJSON is supported in node >= 21
+    ? JSON.rawJSON(String(val))
+    : value
+)
+// {"foo":9007199254740993}
 ```
 
 ## License

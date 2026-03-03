@@ -29,9 +29,22 @@ const {
   UNDEFINED,
 
   define,
+  set_raw_string_literal,
+  set_comment_line_breaks,
   assign_non_prop_comments
 } = require('./common')
 
+/**
+ * Tokenize JSON string with comments into an array of tokens.
+ *
+ * @param {string} code The JSON string with comments to tokenize.
+ * @returns {Array} Array of token objects containing type, value, and location
+ *   information.
+ *
+ * @example
+ * const tokens = tokenize('{"a": 1 // comment}')
+ * // Returns array of tokens including comment tokens
+ */
 const tokenize = code => esprima.tokenize(code, {
   comment: true,
   loc: true
@@ -83,9 +96,9 @@ const symbolFor = prefix => Symbol.for(
     : prefix
 )
 
-const transform = (k, v) => reviver
-  ? reviver(k, v)
-  : v
+const transform = (k, {value, context = {}}) => reviver
+  ? reviver(k, value, context)
+  : value
 
 const unexpected = () => {
   const error = new SyntaxError(`Unexpected token '${current.value.slice(0, 1)}', "${current_code}" is not valid JSON`)
@@ -207,17 +220,41 @@ const parse_comments = prefix => {
       inline
     }
 
+    const previous_line = last
+      ? last.loc.end.line
+      : 1
+
+    set_comment_line_breaks(
+      comment,
+      Math.max(0, comment.loc.start.line - previous_line)
+    )
+
     // delete comment.loc
     comments.push(comment)
 
     next()
   }
 
+  const {length} = comments
+
+  if (length) {
+    const comment = comments[length - 1]
+    const current_line = current
+      ? current.loc.start.line
+      : comment.loc.end.line
+
+    set_comment_line_breaks(
+      comment,
+      undefined,
+      Math.max(0, current_line - comment.loc.end.line)
+    )
+  }
+
   if (remove_comments) {
     return
   }
 
-  if (!comments.length) {
+  if (!length) {
     return
   }
 
@@ -370,12 +407,16 @@ function walk () {
 
   if (tt === CURLY_BRACKET_OPEN) {
     next()
-    return parse_object()
+    return {
+      value: parse_object()
+    }
   }
 
   if (tt === BRACKET_OPEN) {
     next()
-    return parse_array()
+    return {
+      value: parse_array()
+    }
   }
 
   let negative = EMPTY
@@ -388,21 +429,62 @@ function walk () {
   }
 
   let v
+  let source
 
   switch (tt) {
   case 'String':
+    set_raw_string_literal(comments_host, last_prop, current.value)
+    // falls through
   case 'Boolean':
   case 'Null':
   case 'Numeric':
     v = current.value
     next()
-    return JSON.parse(negative + v)
+
+    source = negative + v
+    return {
+      value: JSON.parse(source),
+      context: {
+        source
+      }
+    }
   default:
+    // => unexpected token
+    return {}
   }
 }
 
 const isObject = subject => Object(subject) === subject
 
+/**
+ * Converts a JavaScript Object Notation (JSON) string with comments into an
+ * object.
+ *
+ * @param {string} code A valid JSON string with comments.
+ * @param {function} [rev] A function that transforms the results. This function
+ *   is called for each member of the object. If a member contains nested
+ *   objects, the nested objects are transformed before the parent object is.
+ * @param {boolean} [no_comments=false] If true, the comments won't be
+ *   maintained, which is often used when we want to get a clean object.
+ * @returns {*} The JavaScript object corresponding to the given JSON text with
+ *   comments preserved as symbol properties.
+ *
+ * @example
+ * const result = parse('{"a": 1 // This is a comment}')
+ * // result.a === 1
+ * // Comments are stored in symbol properties
+ *
+ * @example
+ * // With reviver function
+ * const result = parse('{"a": "1"}', (key, value) => {
+ *   return typeof value === 'string' ? parseInt(value) : value
+ * })
+ *
+ * @example
+ * // Without comments
+ * const clean = parse('{"a": 1 // comment}', null, true)
+ * // Returns clean object without comment symbols
+ */
 const parse = (code, rev, no_comments) => {
   // Clean variables in closure
   clean()
@@ -423,7 +505,7 @@ const parse = (code, rev, no_comments) => {
 
   parse_comments(PREFIX_BEFORE_ALL)
 
-  let result = walk()
+  const final = walk()
 
   parse_comments(PREFIX_AFTER_ALL)
 
@@ -431,6 +513,11 @@ const parse = (code, rev, no_comments) => {
     unexpected()
   }
 
+  // reviver
+  let result = transform('', final)
+
+  // We should run reviver before the checks below,
+  // otherwise the comment info will be lost
   if (!no_comments && result !== null) {
     if (!isObject(result)) {
       // 1 -> new Number(1)
@@ -445,9 +532,6 @@ const parse = (code, rev, no_comments) => {
   }
 
   restore_comments_host()
-
-  // reviver
-  result = transform('', result)
 
   free()
 

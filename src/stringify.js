@@ -17,11 +17,14 @@ const {
 
   UNDEFINED,
 
-  is_object
-} = require('./common')
+  is_object,
 
-// eslint-disable-next-line no-control-regex, no-misleading-character-class
-const ESCAPABLE = /[\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g
+  get_raw_string_literal,
+  get_comment_line_breaks_before,
+  get_comment_line_breaks_after,
+
+  is_raw_json
+} = require('./common')
 
 // String constants
 const SPACE = ' '
@@ -35,39 +38,54 @@ const AFTER_COLON = prop => `${PREFIX_AFTER_COLON}:${prop}`
 const AFTER_VALUE = prop => `${PREFIX_AFTER_VALUE}:${prop}`
 const AFTER = prop => `${PREFIX_AFTER}:${prop}`
 
-// table of character substitutions
-const meta = {
-  '\b': '\\b',
-  '\t': '\\t',
-  '\n': '\\n',
-  '\f': '\\f',
-  '\r': '\\r',
-  '"': '\\"',
-  '\\': '\\\\'
-}
-
-const escape = string => {
-  ESCAPABLE.lastIndex = 0
-
-  if (!ESCAPABLE.test(string)) {
-    return string
-  }
-
-  return string.replace(ESCAPABLE, a => {
-    const c = meta[a]
-    return typeof c === 'string'
-      ? c
-      : a
-  })
-}
-
-// Escape no control characters, no quote characters,
-// and no backslash characters,
-// then we can safely slap some quotes around it.
-const quote = string => `"${escape(string)}"`
+const quote = JSON.stringify
 const comment_stringify = (value, line) => line
   ? `//${value}`
   : `/*${value}*/`
+const repeat_line_breaks = (line_breaks, gap) => (LF + gap).repeat(line_breaks)
+const read_line_breaks = line_breaks => isNumber(line_breaks) && line_breaks >= 0
+  ? line_breaks
+  : null
+const read_line_breaks_from_loc = (previous_comment, comment) => {
+  if (
+    !previous_comment
+    || !previous_comment.loc
+    || !comment.loc
+  ) {
+    return null
+  }
+
+  const {end} = previous_comment.loc
+  const {start} = comment.loc
+
+  if (
+    !end
+    || !start
+    || !isNumber(end.line)
+    || !isNumber(start.line)
+  ) {
+    return null
+  }
+
+  const line_breaks = start.line - end.line
+
+  return line_breaks >= 0
+    ? line_breaks
+    : null
+}
+const count_trailing_line_breaks = (str, gap) => {
+  const unit = LF + gap
+  const {length} = unit
+  let i = str.length
+  let count = 0
+
+  while (i >= length && str.slice(i - length, i) === unit) {
+    i -= length
+    count ++
+  }
+
+  return count
+}
 
 // display_block `boolean` whether the
 //   WHOLE block of comments is always a block group
@@ -77,27 +95,58 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
     return EMPTY
   }
 
-  let is_line_comment = false
+  let str = EMPTY
+  let last_comment = null
 
-  const str = comments.reduce((prev, {
-    inline,
-    type,
-    value
-  }) => {
-    const delimiter = inline
-      ? SPACE
-      : LF + deeper_gap
+  comments.forEach((comment, i) => {
+    const {
+      inline,
+      type,
+      value
+    } = comment
 
-    is_line_comment = type === 'LineComment'
+    let line_breaks_before = read_line_breaks(
+      get_comment_line_breaks_before(comment)
+    )
 
-    return prev + delimiter + comment_stringify(value, is_line_comment)
-  }, EMPTY)
+    if (line_breaks_before === null) {
+      line_breaks_before = read_line_breaks_from_loc(last_comment, comment)
+    }
 
-  return display_block
-  // line comment should always end with a LF
-  || is_line_comment
-    ? str + LF + deeper_gap
-    : str
+    if (line_breaks_before === null) {
+      line_breaks_before = inline
+        ? 0
+        : 1
+    }
+
+    const delimiter = line_breaks_before > 0
+      ? repeat_line_breaks(line_breaks_before, deeper_gap)
+      : inline
+        ? SPACE
+        // The first comment at the very beginning of the source.
+        : i === 0
+          ? EMPTY
+          : LF + deeper_gap
+
+    const is_line_comment = type === 'LineComment'
+
+    str += delimiter + comment_stringify(value, is_line_comment)
+
+    last_comment = comment
+  })
+
+  const default_line_breaks_after = display_block
+    // line comment should always end with a LF
+    || last_comment.type === 'LineComment'
+    ? 1
+    : 0
+
+  const line_breaks_after = Math.max(
+    default_line_breaks_after,
+    read_line_breaks(get_comment_line_breaks_after(last_comment)) || 0
+  )
+
+  return str + repeat_line_breaks(line_breaks_after, deeper_gap)
 }
 
 let replacer = null
@@ -116,15 +165,36 @@ const join = (one, two, gap) =>
       // and make a mistake.
       // SO, we are not to only trimRight but trim for both sides
       ? one + two.trim() + LF + gap
-      : one.trimRight() + LF + gap
+      : one.trimRight() + repeat_line_breaks(
+        Math.max(1, count_trailing_line_breaks(one, gap)),
+        gap
+      )
     : two
-      ? two.trimRight() + LF + gap
+      ? two.trimRight() + repeat_line_breaks(
+        Math.max(1, count_trailing_line_breaks(two, gap)),
+        gap
+      )
       : EMPTY
 
 const join_content = (inside, value, gap) => {
   const comment = process_comments(value, PREFIX_BEFORE, gap + indent, true)
 
   return join(comment, inside, gap)
+}
+
+const stringify_string = (holder, key, value) => {
+  const raw = get_raw_string_literal(holder, key)
+  if (isString(raw)) {
+    try {
+      if (JSON.parse(raw) === value) {
+        return raw
+      }
+    } catch (e) {
+      // ignore invalid raw string literals and fallback to native behavior
+    }
+  }
+
+  return quote(value)
 }
 
 // | deeper_gap   |
@@ -273,7 +343,7 @@ function stringify (key, holder, gap) {
 
   switch (typeof value) {
   case 'string':
-    return quote(value)
+    return stringify_string(holder, key, value)
 
   case 'number':
     // JSON numbers must be finite. Encode non-finite numbers as null.
@@ -290,6 +360,10 @@ function stringify (key, holder, gap) {
   // If the type is 'object', we might be dealing with an object or an array or
   // null.
   case 'object':
+    if (is_raw_json(value)) {
+      return value.rawJSON
+    }
+
     return Array.isArray(value)
       ? array_stringify(value, gap)
       : object_stringify(value, gap)
@@ -324,8 +398,33 @@ const is_primitive_object = subject => {
   return PRIMITIVE_OBJECT_TYPES.includes(str)
 }
 
-// @param {function()|Array} replacer
-// @param {string|number} space
+/**
+ * Converts a JavaScript value to a JavaScript Object Notation (JSON) string
+ * with comments preserved.
+ *
+ * @param {*} value A JavaScript value, usually an object or array, to be
+ *   converted.
+ * @param {function|Array|null} [replacer_] A function that transforms the
+ *   results or an array of strings and numbers that acts as an approved list
+ *   for selecting the object properties that will be stringified.
+ * @param {string|number} [space] Adds indentation, white space, and line
+ *   break characters to the return-value JSON text to make it easier to read.
+ * @returns {string} A JSON string representing the given value with comments
+ *   preserved.
+ *
+ * @example
+ * const obj = parse('{"a": 1 // comment}')
+ * stringify(obj, null, 2)
+ * // Returns: '{\n  "a": 1 // comment\n}'
+ *
+ * @example
+ * // With replacer function
+ * stringify(obj, (key, value) => typeof value === 'number' ? value * 2 : value)
+ *
+ * @example
+ * // With replacer array
+ * stringify(obj, ['a', 'b']) // Only include 'a' and 'b' properties
+ */
 module.exports = (value, replacer_, space) => {
   // The stringify method takes a value and an optional replacer, and an optional
   // space parameter, and returns a JSON text. The replacer can be a function

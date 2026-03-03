@@ -11,7 +11,9 @@ const {
   PREFIX_BEFORE_ALL,
   PREFIX_AFTER_ALL,
 
-  assign
+  assign,
+  moveComments,
+  removeComments
 } = require('./common')
 
 module.exports = {
@@ -29,5 +31,7 @@ module.exports = {
   tokenize,
 
   CommentArray,
-  assign
+  assign,
+  moveComments,
+  removeComments
 }

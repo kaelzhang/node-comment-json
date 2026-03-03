@@ -63,3 +63,5 @@ tmp/
 .project
 .classpath
 /gradle
+
+*.tsbuildinfo

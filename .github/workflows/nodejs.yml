@@ -9,7 +9,8 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 24.x]
+        # 20.x does not support JSON.rawJSON
+        node-version: [22.x, 24.x]
 
     steps:
     - uses: actions/checkout@v5
