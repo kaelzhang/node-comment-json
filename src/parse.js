@@ -28,6 +28,7 @@ const {
 
   UNDEFINED,
 
+  is_object,
   define,
   set_raw_string_literal,
   set_comment_line_breaks,
@@ -454,8 +455,6 @@ function walk () {
   }
 }
 
-const isObject = subject => Object(subject) === subject
-
 /**
  * Converts a JavaScript Object Notation (JSON) string with comments into an
  * object.
@@ -519,7 +518,7 @@ const parse = (code, rev, no_comments) => {
   // We should run reviver before the checks below,
   // otherwise the comment info will be lost
   if (!no_comments && result !== null) {
-    if (!isObject(result)) {
+    if (!is_object(result)) {
       // 1 -> new Number(1)
       // true -> new Boolean(1)
       // "foo" -> new String("foo")

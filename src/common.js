@@ -39,12 +39,20 @@ const LINE_BREAKS_BEFORE = new WeakMap()
 const LINE_BREAKS_AFTER = new WeakMap()
 const RAW_STRING_LITERALS = new WeakMap()
 
-const normalize_key = key => isString(key) || isNumber(key)
+const is_string = subject => typeof subject === 'string'
+const is_number = subject => typeof subject === 'number'
+/**
+ * @param {unknown} v
+ * @returns {v is NonNullable<object>}
+ */
+const is_object = v => typeof v === 'object' && v !== null
+
+const normalize_key = key => is_string(key) || is_number(key)
   ? String(key)
   : null
 
 const set_raw_string_literal = (host, key, raw) => {
-  if (!isObject(host) || !isString(raw)) {
+  if (!is_object(host) || !is_string(raw)) {
     return
   }
 
@@ -63,7 +71,7 @@ const set_raw_string_literal = (host, key, raw) => {
 }
 
 const get_raw_string_literal = (host, key) => {
-  if (!isObject(host)) {
+  if (!is_object(host)) {
     return
   }
 
@@ -102,12 +110,6 @@ const define = (target, key, value) => Object.defineProperty(target, key, {
   writable: true,
   configurable: true
 })
-
-/**
- * @param {unknown} v
- * @returns {v is NonNullable<object>}
- */
-const is_object = v => typeof v === 'object' && v !== null
 
 const copy_comments_by_kind = (
   target, source, target_key, source_key, prefix, remove_source
@@ -186,7 +188,7 @@ const assign = (target, source, keys) => {
   return target
 }
 
-const is_raw_json = isFunction(JSON.isRawJSON)
+const is_raw_json = typeof JSON.isRawJSON === 'function'
   // For backward compatibility,
   // since JSON.isRawJSON is not supported in node < 21
   ? JSON.isRawJSON
@@ -194,11 +196,11 @@ const is_raw_json = isFunction(JSON.isRawJSON)
   : () => false
 
 const set_comment_line_breaks = (comment, before, after) => {
-  if (isNumber(before) && before >= 0) {
+  if (is_number(before) && before >= 0) {
     LINE_BREAKS_BEFORE.set(comment, before)
   }
 
-  if (isNumber(after) && after >= 0) {
+  if (is_number(after) && after >= 0) {
     LINE_BREAKS_AFTER.set(comment, after)
   }
 }
@@ -236,6 +238,8 @@ module.exports = {
   swap_comments,
   assign_non_prop_comments,
 
+  is_string,
+  is_number,
   is_object,
 
   is_raw_json,
@@ -349,7 +353,7 @@ module.exports = {
     where: to_where,
     key: to_key
   }, override = false) {
-    if (!isObject(source)) {
+    if (!is_object(source)) {
       throw new TypeError('source must be an object')
     }
 
@@ -357,7 +361,7 @@ module.exports = {
       target = source
     }
 
-    if (!isObject(target)) {
+    if (!is_object(target)) {
       // No target to move to
       return
     }
@@ -412,7 +416,7 @@ module.exports = {
     where,
     key
   }) {
-    if (!isObject(target)) {
+    if (!is_object(target)) {
       throw new TypeError('target must be an object')
     }
 

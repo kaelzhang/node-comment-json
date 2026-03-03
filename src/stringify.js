@@ -17,6 +17,8 @@ const {
 
   UNDEFINED,
 
+  is_string,
+  is_number,
   is_object,
 
   get_raw_string_literal,
@@ -43,7 +45,7 @@ const comment_stringify = (value, line) => line
   ? `//${value}`
   : `/*${value}*/`
 const repeat_line_breaks = (line_breaks, gap) => (LF + gap).repeat(line_breaks)
-const read_line_breaks = line_breaks => isNumber(line_breaks) && line_breaks >= 0
+const read_line_breaks = line_breaks => is_number(line_breaks) && line_breaks >= 0
   ? line_breaks
   : null
 const read_line_breaks_from_loc = (previous_comment, comment) => {
@@ -61,8 +63,8 @@ const read_line_breaks_from_loc = (previous_comment, comment) => {
   if (
     !end
     || !start
-    || !isNumber(end.line)
-    || !isNumber(start.line)
+    || !is_number(end.line)
+    || !is_number(start.line)
   ) {
     return null
   }
@@ -184,7 +186,7 @@ const join_content = (inside, value, gap) => {
 
 const stringify_string = (holder, key, value) => {
   const raw = get_raw_string_literal(holder, key)
-  if (isString(raw)) {
+  if (is_string(raw)) {
     try {
       if (JSON.parse(raw) === value) {
         return raw
