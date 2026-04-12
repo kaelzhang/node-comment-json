@@ -155,6 +155,13 @@ OLD_CASES.forEach(name => {
   })
 })
 
+test('bun-derived fixture should round-trip with preserved blank lines', t => {
+  const file = resolve('bun-derived-2.json')
+  const content = fs.readFileSync(file).toString().trim()
+
+  t.is(stringify(parse(content), null, 2), content)
+})
+
 test('preserve blank lines between array items with comments', t => {
   const content = `{
   "extends": [

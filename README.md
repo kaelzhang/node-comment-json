@@ -32,6 +32,7 @@ The usage of `comment-json` is exactly the same as the vanilla [`JSON`](https://
   - [assign](#assigntarget-object-source-object-keys-array)
   - [moveComments](#movecommentssource-object-target-object-from-object-to-object-override-boolean)
   - [removeComments](#removecommentstarget-object-location-object)
+  - [removeBlankLines](#removeblanklinestarget-object-location-object)
   - [CommentArray](#commentarray)
 - [Change Logs](https://github.com/kaelzhang/node-comment-json/releases)
 
@@ -76,7 +77,8 @@ const {
   stringify,
   assign,
   moveComments,
-  removeComments
+  removeComments,
+  removeBlankLines
 } = require('comment-json')
 const fs = require('fs')
 
@@ -124,14 +126,24 @@ For details about `assign`, see [here](#assigntarget-object-source-object-keys-a
 ## parse()
 
 ```ts
-parse(text, reviver? = null, remove_comments? = false)
+parse(
+  text,
+  reviver? = null,
+  options? = false | {
+    no_comments?: boolean,
+    no_blank_lines?: boolean
+  }
+)
   : object | string | number | boolean | null
 ```
 
 - **text** `string` The string to parse as JSON. See the [JSON](http://json.org/) object for a description of JSON syntax.
 - **reviver?** `Function() | null` Default to `null`. It acts the same as the second parameter of [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse). If a function, prescribes how the value originally produced by parsing is transformed, before being returned.
   - `comment-json` also passes the 3rd parameter `context` to the function `reviver`, as described in https://github.com/tc39/proposal-json-parse-with-source, which will be useful to parse a JSON string with `BigInt` values.
-- **remove_comments?** `boolean = false` If true, the comments won't be maintained, which is often used when we want to get a clean object.
+- **options?** `boolean | object = false`
+  - passing `true` is the backward-compatible shorthand of `{ no_comments: true }`
+  - **options.no_comments?** `boolean = false` If true, `LineComment` and `BlockComment` tokens won't be maintained.
+  - **options.no_blank_lines?** `boolean = false` If true, `BlankLine` tokens won't be generated.
 
 Returns `CommentJSONValue` (`object | string | number | boolean | null`) corresponding to the given JSON text.
 
@@ -281,7 +293,14 @@ Symbol.for('after-all')
 And the value of each symbol property is an **array** of `CommentToken`
 
 ```ts
-interface CommentToken {
+type CommentToken = BlankLineToken | CommentLineToken
+
+interface BlankLineToken {
+  type: 'BlankLine'
+  inline: false
+}
+
+interface CommentLineToken {
   type: 'BlockComment' | 'LineComment'
   // The content of the comment, including whitespaces and line breaks
   value: string
@@ -289,8 +308,9 @@ interface CommentToken {
   // then `inline` is `true`
   inline: boolean
 
-  // But pay attention that,
-  // locations will NOT be maintained when stringified
+  // `loc` is kept for real comments only.
+  // It will NOT be maintained when stringified, and blank lines are rendered
+  // from explicit `BlankLine` tokens instead of inferred from `loc`.
   loc: CommentLocation
 }
 
@@ -306,6 +326,9 @@ interface Location {
   column: number
 }
 ```
+
+Each physical empty line is represented by an explicit `BlankLine` token, so
+`stringify()` no longer infers empty lines from `loc`.
 
 ### Query comments in TypeScript
 
@@ -327,10 +350,13 @@ console.log((parsed as CommentArray<string>)[Symbol.for(symbolName) as CommentSy
 In this example, casting to `Symbol.for(symbolName)` to `CommentSymbol` is mandatory.
 Otherwise, TypeScript won't detect that you're trying to query comments.
 
-### Parse into an object without comments
+### Parse into an object without comments and/or blank lines
 
 ```js
-console.log(parse(content, null, true))
+console.log(parse(content, null, {
+  no_comments: true,
+  no_blank_lines: true
+}))
 ```
 
 And the result will be:
@@ -357,7 +383,7 @@ console.log(parsed === 1)
 // false
 ```
 
-If we parse a JSON of primative type with `remove_comments:false`, then the return value of `parse()` will be of object type.
+If we parse a JSON of primative type with `no_comments:false`, then the return value of `parse()` will be of object type.
 
 The value of `parsed` is equivalent to:
 
@@ -663,6 +689,56 @@ removeComments(obj, { where: 'after-all' })
 
 console.log(stringify(obj, null, 2))
 // {
+//   "foo": 1
+// }
+```
+
+## removeBlankLines(target: object, location?: object)
+
+- **target** `object` The target object to remove blank lines from.
+- **location?** `object` Optional specific comment location to clean.
+  - **location.where** `CommentPrefix` The comment position (e.g., 'before', 'after', 'before-all', etc.).
+  - **location.key?** `string` The property key for property-specific comments. Omit for non-property comments.
+
+This method removes only `BlankLine` tokens. Real comments stay in place.
+
+### Remove blank lines recursively
+
+```js
+const {parse, stringify, removeBlankLines} = require('comment-json')
+
+const obj = parse(`{
+  // before foo
+
+  "foo": 1,
+
+  "bar": 2
+}`)
+
+removeBlankLines(obj)
+
+console.log(stringify(obj, null, 2))
+// {
+//   // before foo
+//   "foo": 1,
+//   "bar": 2
+// }
+```
+
+### Remove blank lines from one location
+
+```js
+const obj = parse(`{
+  // before foo
+
+  "foo": 1
+}`)
+
+removeBlankLines(obj, { where: 'before', key: 'foo' })
+
+console.log(stringify(obj, null, 2))
+// {
+//   // before foo
 //   "foo": 1
 // }
 ```
