@@ -183,6 +183,27 @@ const append_blank_lines = (comments, from_line, to_line) => {
   }
 }
 
+const normalize_parse_options = options => {
+  if (typeof options === 'boolean') {
+    return {
+      no_comments: options,
+      no_blank_lines: false
+    }
+  }
+
+  if (!is_object(options)) {
+    return {
+      no_comments: false,
+      no_blank_lines: false
+    }
+  }
+
+  return {
+    no_comments: !!options.no_comments,
+    no_blank_lines: !!options.no_blank_lines
+  }
+}
+
 const assign_after_comments = () => {
   if (!unassigned_comments) {
     return
@@ -495,16 +516,21 @@ function walk () {
  * const clean = parse('{"a": 1 // comment}', null, true)
  * // Returns clean object without comment symbols
  */
-const parse = (code, rev, no_comments) => {
+const parse = (code, rev, options) => {
   // Clean variables in closure
   clean()
+
+  const {
+    no_comments,
+    no_blank_lines
+  } = normalize_parse_options(options)
 
   current_code = code
   source_line_count = code.split('\n').length
   tokens = tokenize(code)
   reviver = rev
-  remove_comments = !!no_comments
-  remove_blank_lines = remove_comments
+  remove_comments = no_comments
+  remove_blank_lines = no_blank_lines
 
   if (!tokens.length) {
     unexpected_end()

@@ -61,7 +61,12 @@ export interface CommentObject {
   [commentSymbol]: CommentToken[]
 }
 
-export interface CommentToken {
+export interface BlankLineToken {
+  type: 'BlankLine'
+  inline: false
+}
+
+export interface CommentLineToken {
   type: 'BlockComment' | 'LineComment'
   /** The content of the comment, including whitespaces and line breaks */
   value: string
@@ -73,6 +78,8 @@ export interface CommentToken {
   /* But pay attention that, locations will NOT be maintained when stringified */
   loc: CommentLocation
 }
+
+export type CommentToken = BlankLineToken | CommentLineToken
 
 export interface CommentLocation {
   /** The start location begins at the `//` or `/*` symbol */
@@ -92,6 +99,11 @@ export type Reviver = (
   context?: { source?: string }
 ) => unknown
 
+export interface ParseOptions {
+  no_comments?: boolean
+  no_blank_lines?: boolean
+}
+
 /**
  * Converts a JavaScript Object Notation (JSON) string into an object.
  * @param json A valid JSON string.
@@ -102,7 +114,7 @@ export type Reviver = (
 export function parse(
   json: string,
   reviver?: Reviver | null,
-  removesComments?: boolean
+  removesComments?: boolean | ParseOptions
 ): CommentJSONValue
 
 /**
@@ -118,7 +130,7 @@ export function parse(
 export function parse<T>(
   json: string,
   reviver?: Reviver | null,
-  removesComments?: boolean
+  removesComments?: boolean | ParseOptions
 ): T
 
 /**
@@ -192,6 +204,24 @@ export function moveComments(
  * @param location The comment location to remove
  */
 export function removeComments(
+  target: CommentJSONValue,
+  location: CommentPosition
+): void
+
+/**
+ * Remove blank lines from all comment positions recursively.
+ * @param target The target object to remove blank lines from
+ */
+export function removeBlankLines(
+  target: CommentJSONValue
+): void
+
+/**
+ * Remove blank lines from a specific location.
+ * @param target The target object to remove blank lines from
+ * @param location The comment location to remove blank lines from
+ */
+export function removeBlankLines(
   target: CommentJSONValue,
   location: CommentPosition
 ): void

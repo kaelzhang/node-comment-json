@@ -501,3 +501,72 @@ test('parse should emit BlankLine-only slots', t => {
     }
   ])
 })
+
+test('parse(true) should remove comments but keep blank lines', t => {
+  const parsed = parser.parse(`{
+  // before a
+
+  "a": 1
+}`, null, true)
+
+  t.deepEqual(parsed[Symbol.for('before:a')], [
+    {
+      type: 'BlankLine',
+      inline: false
+    }
+  ])
+})
+
+test('parse({ no_comments: true }) should remove comments but keep blank lines', t => {
+  const parsed = parser.parse(`{
+  // before a
+
+  "a": 1
+}`, null, {no_comments: true})
+
+  t.deepEqual(parsed[Symbol.for('before:a')], [
+    {
+      type: 'BlankLine',
+      inline: false
+    }
+  ])
+})
+
+test('parse({ no_blank_lines: true }) should keep comments but remove BlankLine tokens', t => {
+  const parsed = parser.parse(`{
+  // before a
+
+  "a": 1
+}`, null, {no_blank_lines: true})
+
+  t.deepEqual(parsed[Symbol.for('before:a')], [
+    {
+      type: 'LineComment',
+      value: ' before a',
+      inline: false,
+      loc: {
+        start: {
+          line: 2,
+          column: 2
+        },
+        end: {
+          line: 2,
+          column: 13
+        }
+      }
+    }
+  ])
+})
+
+test('parse({ no_comments: true, no_blank_lines: true }) should remove both', t => {
+  const parsed = parser.parse(`{
+  // before a
+
+  "a": 1
+}`, null, {
+    no_comments: true,
+    no_blank_lines: true
+  })
+
+  t.deepEqual(parsed, {a: 1})
+})

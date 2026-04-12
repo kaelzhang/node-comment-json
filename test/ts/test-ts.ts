@@ -8,6 +8,7 @@ import {
   assign,
   moveComments,
   removeComments,
+  removeBlankLines,
   CommentDescriptor,
   CommentSymbol
 } from '../..'
@@ -41,6 +42,12 @@ const str = `{
   "foo": "bar"
 }`
 const parsed = parse(str)
+const parsedWithoutBlankLines = parse(str, null, { no_blank_lines: true }) as CommentObject
+const parsedWithoutComments = parse(`{
+  // This is a comment
+
+  "foo": "bar"
+}`, null, { no_comments: true }) as CommentObject
 
 const obj = assign({
   bar: 'baz'
@@ -53,6 +60,8 @@ assert(stringify(obj, null, 2) === `{
 }`, 'assign')
 
 assert(Array.isArray(tokenize(str)), 'tokenize')
+assert(typeof parsedWithoutBlankLines.foo === 'string', 'parse options: no_blank_lines')
+assert(Array.isArray(parsedWithoutComments[Symbol.for('before:foo') as CommentSymbol]), 'parse options: no_comments')
 
 const comment = "this is a comment"
 let commentDescriptor: CommentDescriptor = `before:0`
@@ -62,7 +71,9 @@ const commentSrc = `[
   "bar"
 ]`
 
-assert((parse(commentSrc) as CommentArray<string>)[Symbol.for(commentDescriptor) as CommentSymbol][0].value === comment, 'comment parse')
+const parsedCommentTokens = (parse(commentSrc) as CommentArray<string>)[Symbol.for(commentDescriptor) as CommentSymbol]
+assert(parsedCommentTokens[0].type !== 'BlankLine', 'comment parse token type')
+assert(parsedCommentTokens[0].type !== 'BlankLine' && parsedCommentTokens[0].value === comment, 'comment parse')
 commentDescriptor = "before";
 
 // Test moveComments function
@@ -135,6 +146,21 @@ const removeNonPropResult = stringify(removeNonPropTest, null, 2)
 assert(!removeNonPropResult.includes('// top comment'), 'removeComments removes before-all')
 assert(!removeNonPropResult.includes('// bottom comment'), 'removeComments removes after-all')
 
+// Test removeBlankLines function
+const removeBlankLinesTest = parse(`{
+  // comment before foo
+
+  "foo": 1,
+
+  "bar": 2
+}`) as CommentObject
+
+removeBlankLines(removeBlankLinesTest, { where: 'before', key: 'foo' })
+removeBlankLines(removeBlankLinesTest)
+
+const removeBlankLinesResult = stringify(removeBlankLinesTest, null, 2)
+assert(!removeBlankLinesResult.includes('\n\n'), 'removeBlankLines removes blank lines')
+
 // Test TypeScript type safety for CommentPosition
 const validPosition: { where: 'before', key?: string } = { where: 'before', key: 'test' }
 const validNonPropPosition: { where: 'before-all', key?: string } = { where: 'before-all' }
@@ -142,5 +168,7 @@ const validNonPropPosition: { where: 'before-all', key?: string } = { where: 'be
 // These should compile without errors
 moveComments(moveCommentsTest, moveCommentsTest, validPosition, validNonPropPosition)
 removeComments(removeTest, validPosition)
+removeBlankLines(removeBlankLinesTest, validPosition)
+removeBlankLines(removeBlankLinesTest)
 
 console.log('All TypeScript tests passed!')

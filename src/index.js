@@ -13,7 +13,8 @@ const {
 
   assign,
   moveComments,
-  removeComments
+  removeComments,
+  removeBlankLines
 } = require('./common')
 
 module.exports = {
@@ -33,5 +34,6 @@ module.exports = {
   CommentArray,
   assign,
   moveComments,
-  removeComments
+  removeComments,
+  removeBlankLines
 }

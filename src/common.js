@@ -186,6 +186,63 @@ const assign = (target, source, keys) => {
   return target
 }
 
+const is_comment_symbol = subject => {
+  const key = Symbol.keyFor(subject)
+  return is_string(key)
+    && (
+      NON_PROP_SYMBOL_PREFIXES.includes(key)
+      || PROP_SYMBOL_PREFIXES.some(prefix => key.indexOf(prefix + COLON) === 0)
+    )
+}
+
+const remove_blank_line_tokens = comments => {
+  let write = 0
+  let removed = false
+
+  comments.forEach(comment => {
+    if (comment && comment.type === 'BlankLine') {
+      removed = true
+      return
+    }
+
+    comments[write ++] = comment
+  })
+
+  comments.length = write
+
+  return removed
+}
+
+const remove_blank_lines_from_prop = (target, prop) => {
+  if (!Object.hasOwn(target, prop)) {
+    return
+  }
+
+  const comments = target[prop]
+  if (!Array.isArray(comments) || !remove_blank_line_tokens(comments)) {
+    return
+  }
+
+  if (!comments.length) {
+    delete target[prop]
+  }
+}
+
+const remove_blank_lines_deep = target => {
+  Object.getOwnPropertySymbols(target).forEach(prop => {
+    if (is_comment_symbol(prop)) {
+      remove_blank_lines_from_prop(target, prop)
+    }
+  })
+
+  Object.keys(target).forEach(key => {
+    const value = target[key]
+    if (is_object(value)) {
+      remove_blank_lines_deep(value)
+    }
+  })
+}
+
 const is_raw_json = typeof JSON.isRawJSON === 'function'
   // For backward compatibility,
   // since JSON.isRawJSON is not supported in node < 21
@@ -408,5 +465,37 @@ module.exports = {
     }
 
     delete target[prop]
+  },
+
+  /**
+   * Remove blank lines from a specific location or recursively from an object.
+   *
+   * @param {Object} target The target object to remove blank lines from.
+   * @param {Object} [location] The comment location to remove blank lines from.
+   * @param {string} location.where The comment position (e.g., 'before',
+   *   'after', 'before-all', etc.).
+   * @param {string} [location.key] The property key for property-specific
+   *   comments. Omit for non-property comments.
+   *
+   * @throws {TypeError} If target is not an object.
+   * @throws {RangeError} If where parameter is invalid or incompatible with key.
+   */
+  removeBlankLines (target, location) {
+    if (!is_object(target)) {
+      throw new TypeError('target must be an object')
+    }
+
+    if (location === UNDEFINED) {
+      remove_blank_lines_deep(target)
+      return
+    }
+
+    const {
+      where,
+      key
+    } = location
+
+    const prop = symbol_checked(where, key)
+    remove_blank_lines_from_prop(target, prop)
   }
 }
