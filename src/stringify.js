@@ -18,7 +18,6 @@ const {
   UNDEFINED,
 
   is_string,
-  is_number,
   is_object,
 
   get_raw_string_literal,
