@@ -31,7 +31,6 @@ const {
   is_object,
   define,
   set_raw_string_literal,
-  set_comment_line_breaks,
   assign_non_prop_comments
 } = require('./common')
 
@@ -60,12 +59,14 @@ const previous_props = []
 let last_prop
 
 let remove_comments = false
+let remove_blank_lines = false
 let inline = false
 let tokens = null
 let last = null
 let current = null
 let index
 let reviver = null
+let source_line_count = 0
 
 const clean = () => {
   current_code = UNDEFINED
@@ -74,6 +75,7 @@ const clean = () => {
 
   last = null
   last_prop = UNDEFINED
+  remove_blank_lines = false
 }
 
 const free = () => {
@@ -89,6 +91,7 @@ const free = () => {
   reviver = null
 
   current_code = UNDEFINED
+  source_line_count = 0
 }
 
 const symbolFor = prefix => Symbol.for(
@@ -164,6 +167,22 @@ const restore_comments_host = () => {
   comments_host = previous_hosts.pop()
 }
 
+const create_blank_line = () => ({
+  type: 'BlankLine',
+  inline: false
+})
+
+const append_blank_lines = (comments, from_line, to_line) => {
+  if (remove_blank_lines) {
+    return
+  }
+
+  let blank_lines = Math.max(0, to_line - from_line - 1)
+  while (blank_lines -- > 0) {
+    comments.push(create_blank_line())
+  }
+}
+
 const assign_after_comments = () => {
   if (!unassigned_comments) {
     return
@@ -208,6 +227,9 @@ const assign_comments = prefix => {
 
 const parse_comments = prefix => {
   const comments = []
+  let previous_line = last
+    ? last.loc.end.line
+    : 0
 
   while (
     current
@@ -216,46 +238,35 @@ const parse_comments = prefix => {
       || is('BlockComment')
     )
   ) {
+    append_blank_lines(comments, previous_line, current.loc.start.line)
+
     const comment = {
       ...current,
       inline
     }
-
-    const previous_line = last
-      ? last.loc.end.line
-      : 1
-
-    set_comment_line_breaks(
-      comment,
-      Math.max(0, comment.loc.start.line - previous_line)
-    )
-
-    // delete comment.loc
     comments.push(comment)
+    previous_line = comment.loc.end.line
 
     next()
   }
 
-  const {length} = comments
-
-  if (length) {
-    const comment = comments[length - 1]
-    const current_line = current
+  append_blank_lines(
+    comments,
+    previous_line,
+    current
       ? current.loc.start.line
-      : comment.loc.end.line
-
-    set_comment_line_breaks(
-      comment,
-      undefined,
-      Math.max(0, current_line - comment.loc.end.line)
-    )
-  }
+      : source_line_count
+  )
 
   if (remove_comments) {
-    return
+    for (let i = comments.length - 1; i >= 0; i --) {
+      if (comments[i].type !== 'BlankLine') {
+        comments.splice(i, 1)
+      }
+    }
   }
 
-  if (!length) {
+  if (!comments.length) {
     return
   }
 
@@ -489,9 +500,11 @@ const parse = (code, rev, no_comments) => {
   clean()
 
   current_code = code
+  source_line_count = code.split('\n').length
   tokens = tokenize(code)
   reviver = rev
-  remove_comments = no_comments
+  remove_comments = !!no_comments
+  remove_blank_lines = remove_comments
 
   if (!tokens.length) {
     unexpected_end()

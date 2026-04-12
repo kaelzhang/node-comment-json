@@ -456,3 +456,48 @@ test('#20: Object.keys', t => {
 
   t.deepEqual(Object.keys(parsed), ['foo'])
 })
+
+test('parse should emit BlankLine tokens after comments', t => {
+  const parsed = parser.parse(`{
+  // before a
+
+  "a": 1
+}`)
+
+  t.deepEqual(parsed[Symbol.for('before:a')], [
+    {
+      type: 'LineComment',
+      value: ' before a',
+      inline: false,
+      loc: {
+        start: {
+          line: 2,
+          column: 2
+        },
+        end: {
+          line: 2,
+          column: 13
+        }
+      }
+    },
+    {
+      type: 'BlankLine',
+      inline: false
+    }
+  ])
+})
+
+test('parse should emit BlankLine-only slots', t => {
+  const parsed = parser.parse(`{
+  "a": 1,
+
+  "b": 2
+}`)
+
+  t.deepEqual(parsed[Symbol.for('before:b')], [
+    {
+      type: 'BlankLine',
+      inline: false
+    }
+  ])
+})

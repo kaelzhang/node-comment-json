@@ -22,9 +22,6 @@ const {
   is_object,
 
   get_raw_string_literal,
-  get_comment_line_breaks_before,
-  get_comment_line_breaks_after,
-
   is_raw_json
 } = require('./common')
 
@@ -45,44 +42,21 @@ const comment_stringify = (value, line) => line
   ? `//${value}`
   : `/*${value}*/`
 const repeat_line_breaks = (line_breaks, gap) => (LF + gap).repeat(line_breaks)
-const read_line_breaks = line_breaks => is_number(line_breaks) && line_breaks >= 0
-  ? line_breaks
-  : null
-const read_line_breaks_from_loc = (previous_comment, comment) => {
-  if (
-    !previous_comment
-    || !previous_comment.loc
-    || !comment.loc
-  ) {
-    return null
-  }
-
-  const {end} = previous_comment.loc
-  const {start} = comment.loc
-
-  if (
-    !end
-    || !start
-    || !is_number(end.line)
-    || !is_number(start.line)
-  ) {
-    return null
-  }
-
-  const line_breaks = start.line - end.line
-
-  return line_breaks >= 0
-    ? line_breaks
-    : null
-}
-const count_trailing_line_breaks = (str, gap) => {
-  const unit = LF + gap
-  const {length} = unit
+const is_inline_whitespace = char => char === SPACE || char === '\t'
+const count_trailing_line_breaks = str => {
   let i = str.length
   let count = 0
 
-  while (i >= length && str.slice(i - length, i) === unit) {
-    i -= length
+  while (i > 0) {
+    while (i > 0 && is_inline_whitespace(str[i - 1])) {
+      i --
+    }
+
+    if (i === 0 || str[i - 1] !== LF) {
+      return count
+    }
+
+    i --
     count ++
   }
 
@@ -98,35 +72,31 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
   }
 
   let str = EMPTY
+  let blank_lines = 0
   let last_comment = null
 
   comments.forEach((comment, i) => {
+    if (comment.type === 'BlankLine') {
+      blank_lines ++
+      return
+    }
+
     const {
       inline,
       type,
       value
     } = comment
 
-    let line_breaks_before = read_line_breaks(
-      get_comment_line_breaks_before(comment)
-    )
-
-    if (line_breaks_before === null) {
-      line_breaks_before = read_line_breaks_from_loc(last_comment, comment)
-    }
-
-    if (line_breaks_before === null) {
-      line_breaks_before = inline
-        ? 0
-        : 1
-    }
+    const line_breaks_before = blank_lines > 0
+      ? blank_lines + (inline ? 0 : 1)
+      : null
 
     const delimiter = line_breaks_before > 0
       ? repeat_line_breaks(line_breaks_before, deeper_gap)
       : inline
         ? SPACE
         // The first comment at the very beginning of the source.
-        : i === 0
+        : i === 0 && symbol_tag === PREFIX_BEFORE_ALL && deeper_gap === EMPTY
           ? EMPTY
           : LF + deeper_gap
 
@@ -134,8 +104,15 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
 
     str += delimiter + comment_stringify(value, is_line_comment)
 
+    blank_lines = 0
     last_comment = comment
   })
+
+  if (!last_comment) {
+    return blank_lines
+      ? repeat_line_breaks(blank_lines + 1, deeper_gap)
+      : EMPTY
+  }
 
   const default_line_breaks_after = display_block
     // line comment should always end with a LF
@@ -143,10 +120,9 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
     ? 1
     : 0
 
-  const line_breaks_after = Math.max(
-    default_line_breaks_after,
-    read_line_breaks(get_comment_line_breaks_after(last_comment)) || 0
-  )
+  const line_breaks_after = blank_lines > 0
+    ? blank_lines + 1
+    : default_line_breaks_after
 
   return str + repeat_line_breaks(line_breaks_after, deeper_gap)
 }
@@ -168,12 +144,12 @@ const join = (one, two, gap) =>
       // SO, we are not to only trimRight but trim for both sides
       ? one + two.trim() + LF + gap
       : one.trimRight() + repeat_line_breaks(
-        Math.max(1, count_trailing_line_breaks(one, gap)),
+        Math.max(1, count_trailing_line_breaks(one)),
         gap
       )
     : two
       ? two.trimRight() + repeat_line_breaks(
-        Math.max(1, count_trailing_line_breaks(two, gap)),
+        Math.max(1, count_trailing_line_breaks(two)),
         gap
       )
       : EMPTY
@@ -400,6 +376,11 @@ const is_primitive_object = subject => {
   return PRIMITIVE_OBJECT_TYPES.includes(str)
 }
 
+const normalize_blank_lines = str =>
+  typeof str === 'string'
+    ? str.replace(/\n[ \t]+(?=\n)/g, '\n')
+    : str
+
 /**
  * Converts a JavaScript value to a JavaScript Object Notation (JSON) string
  * with comments preserved.
@@ -456,9 +437,11 @@ module.exports = (value, replacer_, space) => {
 
   clean()
 
-  return is_object(value)
+  const output = is_object(value)
     ? process_comments(value, PREFIX_BEFORE_ALL, EMPTY, true).trimLeft()
       + str
       + process_comments(value, PREFIX_AFTER_ALL, EMPTY).trimRight()
     : str
+
+  return normalize_blank_lines(output)
 }

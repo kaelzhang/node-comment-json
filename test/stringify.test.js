@@ -5,12 +5,9 @@ const fs = require('fs')
 
 const {parse, stringify} = require('..')
 const {
-  set_comment_line_breaks,
   set_raw_string_literal,
   get_raw_string_literal
 } = require('../src/common')
-
-const normalize_blank_lines = subject => subject.replace(/\n[ \t]+\n/g, '\n\n')
 
 const SUBJECTS = [
   'abc',
@@ -172,7 +169,7 @@ test('preserve blank lines between array items with comments', t => {
   const parsed = parse(content)
   const output = stringify(parsed, null, 2)
 
-  t.is(normalize_blank_lines(output), normalize_blank_lines(content))
+  t.is(output, content)
 })
 
 test('preserve blank lines between commented items with trailing commas', t => {
@@ -199,7 +196,7 @@ test('preserve blank lines between commented items with trailing commas', t => {
   const parsed = parse(input)
   const output = stringify(parsed, null, 2)
 
-  t.is(normalize_blank_lines(output), normalize_blank_lines(expected))
+  t.is(output, expected)
 })
 
 test('preserve blank lines after before comments', t => {
@@ -212,40 +209,24 @@ test('preserve blank lines after before comments', t => {
   const parsed = parse(content)
   const output = stringify(parsed, null, 2)
 
-  t.is(normalize_blank_lines(output), normalize_blank_lines(content))
+  t.is(output, content)
 })
 
-test('fallback to loc line breaks if internal metadata is missing', t => {
+test('render explicit BlankLine tokens between comments', t => {
   const comments = [
     {
       type: 'LineComment',
       value: ' first',
-      inline: false,
-      loc: {
-        start: {
-          line: 2,
-          column: 2
-        },
-        end: {
-          line: 2,
-          column: 10
-        }
-      }
+      inline: false
+    },
+    {
+      type: 'BlankLine',
+      inline: false
     },
     {
       type: 'LineComment',
       value: ' second',
-      inline: false,
-      loc: {
-        start: {
-          line: 4,
-          column: 2
-        },
-        end: {
-          line: 4,
-          column: 11
-        }
-      }
+      inline: false
     }
   ]
 
@@ -261,34 +242,19 @@ test('fallback to loc line breaks if internal metadata is missing', t => {
 
   const output = stringify(obj, null, 2)
 
-  t.true(output.includes('// first\n  \n  // second'))
+  t.is(output, `{
+  // first
+
+  // second
+  "a": 1
+}`)
 })
 
-test('fallback to default spacing if loc is malformed', t => {
+test('render blank-line-only slots without indentation whitespace', t => {
   const comments = [
     {
-      type: 'LineComment',
-      value: ' first',
-      inline: false,
-      loc: {
-        start: {
-          line: 2,
-          column: 2
-        },
-        end: {
-          line: 2,
-          column: 10
-        }
-      }
-    },
-    {
-      type: 'LineComment',
-      value: ' second',
-      inline: false,
-      loc: {
-        start: {},
-        end: {}
-      }
+      type: 'BlankLine',
+      inline: false
     }
   ]
 
@@ -304,119 +270,55 @@ test('fallback to default spacing if loc is malformed', t => {
 
   const output = stringify(obj, null, 2)
 
-  t.true(output.includes('// first\n  // second'))
+  t.is(output, `{
+
+  "a": 1
+}`)
 })
 
-test('fallback to inline spacing if no metadata and no loc', t => {
+test('render explicit BlankLine tokens before closing brackets', t => {
   const comments = [
     {
-      type: 'LineComment',
-      value: ' first',
-      inline: false,
-      loc: {
-        start: {
-          line: 2,
-          column: 2
-        },
-        end: {
-          line: 2,
-          column: 10
-        }
-      }
-    },
+      type: 'BlankLine',
+      inline: false
+    }
+  ]
+
+  const obj = {a: 1}
+
+  Object.defineProperty(obj, Symbol.for('after'), {
+    value: comments,
+    writable: true,
+    configurable: true
+  })
+
+  const output = stringify(obj, null, 2)
+
+  t.is(output, `{
+  "a": 1
+
+}`)
+})
+
+test('render explicit BlankLine tokens mixed with inline comments', t => {
+  const comments = [
     {
       type: 'BlockComment',
-      value: ' second ',
+      value: ' first ',
       inline: true
-    }
-  ]
-
-  const obj = {
-    a: 1
-  }
-
-  Object.defineProperty(obj, Symbol.for('before:a'), {
-    value: comments,
-    writable: true,
-    configurable: true
-  })
-
-  const output = stringify(obj, null, 2)
-
-  t.true(output.includes('// first /* second */'))
-})
-
-test('fallback when loc line order is invalid', t => {
-  const comments = [
-    {
-      type: 'LineComment',
-      value: ' first',
-      inline: false,
-      loc: {
-        start: {
-          line: 3,
-          column: 2
-        },
-        end: {
-          line: 3,
-          column: 10
-        }
-      }
     },
     {
-      type: 'LineComment',
-      value: ' second',
-      inline: false,
-      loc: {
-        start: {
-          line: 2,
-          column: 2
-        },
-        end: {
-          line: 2,
-          column: 11
-        }
-      }
-    }
-  ]
-
-  const obj = {
-    a: 1
-  }
-
-  Object.defineProperty(obj, Symbol.for('before:a'), {
-    value: comments,
-    writable: true,
-    configurable: true
-  })
-
-  const output = stringify(obj, null, 2)
-
-  t.true(output.includes('// first\n  // second'))
-})
-
-test('handles zero line-break metadata for first and non-first comments', t => {
-  const comments = [
-    {
-      type: 'LineComment',
-      value: ' first',
-      inline: false
-    },
-    {
-      type: 'LineComment',
-      value: ' second',
+      type: 'BlankLine',
       inline: false
     }
   ]
 
-  set_comment_line_breaks(comments[0], 0)
-  set_comment_line_breaks(comments[1], 0)
-
   const obj = {
-    a: 1
+    a: 1,
+    b: 2
   }
 
-  Object.defineProperty(obj, Symbol.for('before-all'), {
+  Object.defineProperty(obj, Symbol.for('after:a'), {
     value: comments,
     writable: true,
     configurable: true
@@ -424,7 +326,11 @@ test('handles zero line-break metadata for first and non-first comments', t => {
 
   const output = stringify(obj, null, 2)
 
-  t.true(output.startsWith('// first\n// second\n{'))
+  t.is(output, `{
+  "a": 1, /* first */
+
+  "b": 2
+}`)
 })
 
 test('escape control characters same as JSON.stringify', t => {
