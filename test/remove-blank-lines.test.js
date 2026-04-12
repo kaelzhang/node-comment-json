@@ -85,3 +85,55 @@ test('removeBlankLines: should return early if the location does not exist', t =
 
   t.deepEqual(obj, {foo: 1})
 })
+
+test('removeBlankLines: should return early when location has no blank lines', t => {
+  const obj = parse(`{
+  // before foo
+  "foo": 1
+}`)
+
+  removeBlankLines(obj, {where: 'before', key: 'foo'})
+
+  t.is(stringify(obj, null, 2), `{
+  // before foo
+  "foo": 1
+}`)
+})
+
+test('removeBlankLines: should ignore non-array comment slots', t => {
+  const obj = {foo: 1}
+
+  Object.defineProperty(obj, Symbol.for('before:foo'), {
+    value: 'not-an-array',
+    writable: true,
+    configurable: true
+  })
+
+  removeBlankLines(obj, {where: 'before', key: 'foo'})
+
+  t.is(obj[Symbol.for('before:foo')], 'not-an-array')
+})
+
+test('removeBlankLines: should ignore non-comment symbols during recursive cleanup', t => {
+  const obj = parse(`{
+  // before foo
+
+  "foo": 1
+}`)
+  const marker = Symbol('marker')
+
+  Object.defineProperty(obj, marker, {
+    value: [{type: 'BlankLine', inline: false}],
+    writable: true,
+    configurable: true
+  })
+
+  removeBlankLines(obj)
+
+  t.true(Object.hasOwn(obj, marker))
+  t.deepEqual(obj[marker], [{type: 'BlankLine', inline: false}])
+  t.is(stringify(obj, null, 2), `{
+  // before foo
+  "foo": 1
+}`)
+})

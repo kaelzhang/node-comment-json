@@ -340,6 +340,60 @@ test('render explicit BlankLine tokens mixed with inline comments', t => {
 }`)
 })
 
+test('render BlankLine tokens before inline comments', t => {
+  const comments = [
+    {
+      type: 'BlankLine',
+      inline: false
+    },
+    {
+      type: 'BlockComment',
+      value: ' second ',
+      inline: true
+    }
+  ]
+
+  const obj = {
+    a: 1,
+    b: 2
+  }
+
+  Object.defineProperty(obj, Symbol.for('after:a'), {
+    value: comments,
+    writable: true,
+    configurable: true
+  })
+
+  const output = stringify(obj, null, 2)
+
+  t.is(output, `{
+  "a": 1,
+  /* second */
+  "b": 2
+}`)
+})
+
+test('ignore blank-line-only before-all slots when stringifying root output', t => {
+  const obj = {
+    a: 1
+  }
+
+  Object.defineProperty(obj, Symbol.for('before-all'), {
+    value: [
+      {
+        type: 'BlankLine',
+        inline: false
+      }
+    ],
+    writable: true,
+    configurable: true
+  })
+
+  t.is(stringify(obj, null, 2), `{
+  "a": 1
+}`)
+})
+
 test('escape control characters same as JSON.stringify', t => {
   for (let i = 0; i <= 0x1f; i ++) {
     const char = String.fromCharCode(i)

@@ -109,9 +109,7 @@ const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
   })
 
   if (!last_comment) {
-    return blank_lines
-      ? repeat_line_breaks(blank_lines + 1, deeper_gap)
-      : EMPTY
+    return repeat_line_breaks(blank_lines + 1, deeper_gap)
   }
 
   const default_line_breaks_after = display_block
