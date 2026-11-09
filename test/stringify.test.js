@@ -219,6 +219,36 @@ test('preserve blank lines after before comments', t => {
   t.is(output, content)
 })
 
+test('preserve blank line after inline block comment following a comma', t => {
+  const content = `{
+  "a": 1, /* x */
+
+  "b": 2
+}`
+
+  t.is(stringify(parse(content), null, 2), content)
+})
+
+test('preserve blank line after inline line comment following a comma', t => {
+  const content = `{
+  "a": 1, // x
+
+  "b": 2
+}`
+
+  t.is(stringify(parse(content), null, 2), content)
+})
+
+test('preserve blank line after inline block comment in arrays', t => {
+  const content = `[
+  1, /* x */
+
+  2
+]`
+
+  t.is(stringify(parse(content), null, 2), content)
+})
+
 test('render explicit BlankLine tokens between comments', t => {
   const comments = [
     {

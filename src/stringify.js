@@ -62,6 +62,26 @@ const count_trailing_line_breaks = str => {
   return count
 }
 
+const count_leading_line_breaks = str => {
+  let i = 0
+  let count = 0
+
+  while (i < str.length) {
+    while (i < str.length && is_inline_whitespace(str[i])) {
+      i ++
+    }
+
+    if (i === str.length || str[i] !== LF) {
+      return count
+    }
+
+    i ++
+    count ++
+  }
+
+  return count
+}
+
 // display_block `boolean` whether the
 //   WHOLE block of comments is always a block group
 const process_comments = (host, symbol_tag, deeper_gap, display_block) => {
@@ -138,8 +158,20 @@ const join = (one, two, gap) =>
       // Symbol.for('before') and Symbol.for('before:prop')
       // might both exist if user mannually add comments to the object
       // and make a mistake.
-      // SO, we are not to only trimRight but trim for both sides
-      ? one + two.trim() + LF + gap
+      // SO, we are not to only trimRight but trim for both sides.
+      // The trailing `LF + gap` plus the trailing line breaks of `one`
+      // already supply some line breaks, so only emit the blank lines that
+      // `two` carries beyond those, otherwise `two.trim()` would drop them.
+      ? one
+        + repeat_line_breaks(
+          Math.max(
+            count_leading_line_breaks(two)
+              - count_trailing_line_breaks(one) - 1,
+            0
+          ),
+          gap
+        )
+        + two.trim() + LF + gap
       : one.trimRight() + repeat_line_breaks(
         Math.max(1, count_trailing_line_breaks(one)),
         gap
