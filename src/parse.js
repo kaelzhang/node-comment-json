@@ -45,10 +45,110 @@ const {
  * const tokens = tokenize('{"a": 1 // comment}')
  * // Returns array of tokens including comment tokens
  */
-const tokenize = code => esprima.tokenize(code, {
-  comment: true,
-  loc: true
-})
+const LINE_SEPARATORS = /[\u2028\u2029]/
+
+// esprima follows the pre-ES2019 rule that U+2028 and U+2029 may not appear
+// in string literals, but JSON allows them. Replace each one inside a string
+// with its `\uXXXX` escape (6 chars instead of 1) and return the positions of
+// the escapes in the new code.
+const escape_line_separators_in_strings = code => {
+  const offsets = []
+  let escaped = ''
+  let quote = null
+  let comment = null
+  const {length} = code
+
+  for (let i = 0; i < length; i ++) {
+    const char = code[i]
+
+    if (comment) {
+      if (
+        comment === '/*'
+          ? char === '*' && code[i + 1] === '/'
+          : char === '\n' || char === '\r' || LINE_SEPARATORS.test(char)
+      ) {
+        comment = null
+      }
+    } else if (quote) {
+      if (char === '\\') {
+        // Keep the escaped character as is
+        escaped += char + (code[i + 1] || '')
+        i ++
+        continue
+      }
+
+      if (char === quote) {
+        quote = null
+      } else if (LINE_SEPARATORS.test(char)) {
+        offsets.push(escaped.length)
+        escaped += `\\u${char.charCodeAt(0).toString(16)}`
+        continue
+      }
+    } else if (char === '"' || char === '\'') {
+      quote = char
+    } else if (char === '/' && (code[i + 1] === '/' || code[i + 1] === '*')) {
+      comment = `/${code[i + 1]}`
+      escaped += char + code[i + 1]
+      i ++
+      continue
+    }
+
+    escaped += char
+  }
+
+  return {escaped, offsets}
+}
+
+const tokenize = code => {
+  if (!LINE_SEPARATORS.test(code)) {
+    return esprima.tokenize(code, {
+      comment: true,
+      loc: true
+    })
+  }
+
+  const {escaped, offsets} = escape_line_separators_in_strings(code)
+  const tokens = esprima.tokenize(escaped, {
+    comment: true,
+    loc: true,
+    range: true
+  })
+
+  // Each escape is 5 chars longer than the character it replaces, so move
+  // every position back by 5 for each escape before it. Escapes are only
+  // inside strings and strings are on one line, so the line numbers are right
+  // and only the columns on the same line need the same fix.
+  let passed = 0
+  let line = 0
+  let passed_on_line = 0
+
+  tokens.forEach(token => {
+    const [start, end] = token.range
+    delete token.range
+
+    if (token.loc.start.line !== line) {
+      line = token.loc.start.line
+      passed_on_line = 0
+    }
+
+    const passed_before = passed
+    while (passed < offsets.length && offsets[passed] < end) {
+      passed ++
+    }
+    const inside = passed - passed_before
+
+    token.loc.start.column -= passed_on_line * 5
+    passed_on_line += inside
+    token.loc.end.column -= passed_on_line * 5
+
+    if (inside) {
+      // Keep the raw characters, as in the source
+      token.value = code.slice(start - passed_before * 5, end - passed * 5)
+    }
+  })
+
+  return tokens
+}
 
 let current_code
 const previous_hosts = []
