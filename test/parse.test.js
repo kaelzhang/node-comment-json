@@ -570,3 +570,43 @@ test('parse({ no_comments: true, no_blank_lines: true }) should remove both', t 
 
   t.deepEqual(parsed, {a: 1})
 })
+
+test('parse should accept raw U+2028 and U+2029 inside strings, like JSON.parse', t => {
+  const L = '\u2028'
+  const P = '\u2029'
+  const text = `{
+  "title": "Line${L}Separator", // comment
+  "quote": "a\\"${P}b",
+  "list": ["${L}${P}", "x"] /* after ${L} */
+}`
+
+  const obj = parser.parse(text)
+  t.deepEqual(
+    JSON.parse(JSON.stringify(obj)),
+    JSON.parse(text.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, ''))
+  )
+  t.is(obj.title, `Line${L}Separator`)
+  t.is(obj[Symbol.for('after:title')][0].value, ' comment')
+  t.is(obj[Symbol.for('after:list')][0].value, ` after ${L} `)
+})
+
+test('tokenize should keep raw U+2028 in strings and the original locations', t => {
+  const L = '\u2028'
+  const tokens = parser.tokenize(`["${L}${L}", 1]`)
+
+  t.deepEqual(
+    tokens.map(({type, value, loc}) => [
+      type,
+      value,
+      loc.start.column,
+      loc.end.column
+    ]),
+    [
+      ['Punctuator', '[', 0, 1],
+      ['String', `"${L}${L}"`, 1, 5],
+      ['Punctuator', ',', 5, 6],
+      ['Numeric', '1', 7, 8],
+      ['Punctuator', ']', 8, 9]
+    ]
+  )
+})
